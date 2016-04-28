@@ -183,6 +183,36 @@ def pullData() {
 	])
 }
 
+String getPowerDataString(Boolean today = true) {
+	def dataString = ""
+    if (today) {
+        state.powerTable.each() {
+            dataString += "[[${it[0]},${it[1]},0],null,null,null,${it[2]}],"
+        }
+    }
+    else {
+        state.powerTableYesterday.each() {
+            dataString += "[[${it[0]},${it[1]},0],null,${it[2]},null,null],"
+        }
+    }
+	return dataString
+}
+
+String getEnergyDataString(Boolean today = true) {
+    def dataString = ""
+    if (today) {
+        state.energyTable.each() {
+            dataString += "[[${it[0]},${it[1]},0],null,null,${it[2]},null],"
+        }
+    }
+    else {
+        state.energyTableYesterday.each() {
+            dataString += "[[${it[0]},${it[1]},0],${it[2]},null,null,null],"
+        }
+    }
+	return dataString
+}
+
 def parse(String message) {
 	def msg = parseLanMessage(message)
 	if (!state.mac || state.mac != msg.mac) {
@@ -204,9 +234,15 @@ def parse(String message) {
 	def energyLife = (data.wattHoursLifetime/1000000).toFloat()
 	def currentPower = data.wattsNow
 	def todayDay = new Date().format("dd",location.timeZone)
+    def powerTable = state.powerTable
+    def energyTable = state.energyTable
 	if (!state.today || state.today != todayDay) {
 		state.peakpower = currentPower
 		state.today = todayDay
+		state.powerTableYesterday = powerTable
+		state.energyTableYesterday = EnergyTable
+        powerTable = powerTable ? [] : null
+        energyTable = energyTable ? [] : null
 		state.lastPower = 0
 		sendEvent(name: 'energy_yesterday', value: device.currentState("energy_str")?.value, displayed: false)
 		sendEvent(name: 'efficiency_yesterday', value: device.currentState("efficiency")?.value, displayed: false)
@@ -230,32 +266,57 @@ def parse(String message) {
 	events << createEvent(name: 'energy', value: energyToday, unit: "kWh", descriptionText: "Energy is " + String.format("%,#.3f", energyToday) + "kWh\n(Efficiency: " + String.format("%#.3f", efficiencyToday) + "kWh/kW)")
 	events << createEvent(name: 'power', value: currentPower, unit: "W", descriptionText: "Power is " + String.format("%,d", currentPower) + "W (" + String.format("%#.1f", 100*currentPower/state.maxPower) + "%)\n(" + String.format("%+,d", powerChange) + "W since last reading)")
 	// get power data for yesterday and today so we can create a graph
-	def startOfToday = timeToday("00:00", location.timeZone)
-	def dataYesterday = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient even if we manually refreshed throughout the day…
-	def dataToday = device.statesSince("power", startOfToday, [max: 288])
-	def dataTable = ""
-	// we want to start the graph at a full hour
-	state.startTime = Math.min(dataYesterday.size() > 0 ? dataYesterday.reverse().first().date.format("HH", location.timeZone).toInteger() : 24, dataToday.size() > 0 ? dataToday.reverse().first().date.format("HH", location.timeZone).toInteger() : 24)
-	dataYesterday.reverse().each() {
-		dataTable += "[[" + it.date.format("HH,mm", location.timeZone) + ",0], null, null, ${it.integerValue}, null],"
+	def startTime = 24
+	if (state.powerTableYesterday == null || state.energyTableYesterday == null || powerTable == null || energyTable == null) {
+		def startOfToday = timeToday("00:00", location.timeZone)
+		if (state.powerTableYesterday == null || state.energyTableYesterday == null) {
+			log.trace "Querying DB for yesterday's data…"
+			def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
+			def energyData = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
+			startTime = Math.min(powerData.size() > 0 ? powerData.reverse().first().date.format("H", location.timeZone).toInteger() : 24, startTime)
+			def dataTable = []
+			powerData.reverse().each() {
+				dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+			}
+			state.powerTableYesterday = dataTable
+			dataTable = []
+			// we drop the first point after midnight (0 energy) in order to have the graph scale correctly
+			energyData.reverse().drop(1).each() {
+				dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+			}
+			state.energyTableYesterday = dataTable
+		}
+		if (powerTable == null || energyTable == null) {
+			log.trace "Querying DB for today's data…"
+			def powerData = device.statesSince("power", startOfToday, [max: 288])
+			def energyData = device.statesSince("energy", startOfToday, [max: 288])
+			startTime = Math.min(powerData.size() > 0 ? powerData.reverse().first().date.format("H", location.timeZone).toInteger() : 24, startTime)
+            powerTable = []
+			powerData.reverse().each() {
+                powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+			}
+            energyTable = []
+			energyData.reverse().drop(1).each() {
+                energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+			}
+		}
 	}
-	dataToday.reverse().each() {
-		dataTable += "[[" + it.date.format("HH,mm", location.timeZone) + ",0], null, null, null, ${it.integerValue}],"
+	// add latest power & energy readings for the graph
+	if (powerTable.size() == 0 && currentPower > 0) {
+		// first non-zero power reading of the day - determine the initial x-axis value
+		startTime = new Date().format("H", location.timeZone).toInteger()
 	}
-	// add latest power reading we just received (and haven't generated an event for yet)
-	dataTable += "[[" + new Date().format("HH,mm", location.timeZone) + ",0], null, null, null, ${currentPower}],"
-	// repeat for energy data
-	dataYesterday = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
-	dataToday = device.statesSince("energy", startOfToday, [max: 288])
-	// we drop the first point after midnight (0 energy) in order to have the graph scale correctly
-	dataYesterday.reverse().drop(1).each() {
-		dataTable += "[[" + it.date.format("HH,mm", location.timeZone) + ",0], ${it.floatValue}, null, null, null],"
+	else if (startTime == 24) {
+		startTime = state.startTime
 	}
-	dataToday.reverse().drop(1).each() {
-		dataTable += "[[" + it.date.format("HH,mm", location.timeZone) + ",0], null, ${it.floatValue}, null, null],"
+	if (currentPower > 0 || powerTable.size() != 0) {
+    	def newDate = new Date()
+        powerTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),currentPower])
+        energyTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),energyToday])
 	}
-	dataTable += "[[" + new Date().format("HH,mm", location.timeZone) + ",0], null, ${energyToday}, null, null]"
-	state.historyTable = dataTable
+	state.startTime = startTime
+    state.powerTable = powerTable
+    state.energyTable = energyTable
 	return events
 }
 
@@ -270,22 +331,28 @@ def getGraphHTML() {
 					google.charts.setOnLoadCallback(drawGraph);
 					function drawGraph() {
 						var data = new google.visualization.DataTable();
-						data.addColumn('timeofday', 'X');
-						data.addColumn('number', 'Power (Yesterday)');
-						data.addColumn('number', 'Power (Today)');
+						data.addColumn('timeofday', 'time');
 						data.addColumn('number', 'Energy (Yesterday)');
+						data.addColumn('number', 'Power (Yesterday)');
 						data.addColumn('number', 'Energy (Today)');
-						data.addRows([${state.historyTable}]);
+						data.addColumn('number', 'Power (Today)');
+						data.addRows([
+							${getEnergyDataString(false)}
+							${getPowerDataString(false)}
+							${getEnergyDataString()}
+							${getPowerDataString()}
+						]);
 						var options = {
+                        	fontName: 'San Francisco, Roboto, Arial',
 							height: 240,
 							hAxis: {
-								format: 'HH:mm',
+								format: 'H:mm',
 								minValue: [${state.startTime},0,0]
 							},
 							series: {
 								0: {targetAxisIndex: 1, color: '#FFC2C2'},
-								1: {targetAxisIndex: 1, color: '#FF0000'},
-								2: {targetAxisIndex: 0, color: '#D1DFFF'},
+								1: {targetAxisIndex: 0, color: '#D1DFFF'},
+								2: {targetAxisIndex: 1, color: '#FF0000'},
 								3: {targetAxisIndex: 0, color: '#004CFF'}
 							},
 							vAxes: {
@@ -306,7 +373,7 @@ def getGraphHTML() {
 								position: 'none'
 							},
 							chartArea: {
-								width: '75%',
+								width: '72%',
 								height: '85%'
 							}
 						};
