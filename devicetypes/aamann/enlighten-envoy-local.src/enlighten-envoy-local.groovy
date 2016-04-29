@@ -49,85 +49,184 @@ metadata {
 
 	tiles(scale: 2) {
 		// this tile is used for display in device list (to get correct colorization)
-		valueTile("power", "device.power") {
-			state("power", label: '${currentValue}W', unit: "W", icon: "st.Weather.weather14", backgroundColors: [
-				[value: 0, color: "#bc2323"],
-				[value: 1000, color: "#1e9cbb"],
-				[value: 2000, color: "#90d2a7"]
-			])
+		valueTile(
+        	"power",
+        	"device.power") {
+                state("power",
+                    label: '${currentValue}W',
+                    unit: "W",
+                    icon: "https://raw.githubusercontent.com/ahndee/Envoy-ST/master/devicetypes/aamann/enlighten-envoy-local.src/Solar.png",
+                    backgroundColors: [
+                        [value: 0, color: "#bc2323"],
+                        [value: 1000, color: "#1e9cbb"],
+                        [value: 2000, color: "#90d2a7"]
+                    ])
 		}
 		// this tile is used only to provide an icon in the recent events list
-		valueTile("energy", "device.energy") {
-			state("energy", label: '${currentValue}', unit: "kWh")
+		valueTile(
+        	"energy",
+            "device.energy") {
+                state("energy",
+                    label: '${currentValue}',
+                    unit: "kWh")
 		}
 		// the following tiles are used for display in the device handler
-		multiAttributeTile(name:"SolarMulti", type:"generic", width:6, height:4) {
-			tileAttribute("device.power", key: "PRIMARY_CONTROL") {
-				attributeState("power", label: '${currentValue}W', unit: "W", backgroundColors: [
-					[value: 0, color: "#bc2323"],
-					[value: 1000, color: "#1e9cbb"],
-					[value: 2000, color: "#90d2a7"]
-				])
+		multiAttributeTile(
+        	name:"SolarMulti",
+        	type:"generic",
+            width:6,
+            height:4) {
+                tileAttribute("device.power", key: "PRIMARY_CONTROL") {
+                    attributeState("power",
+                        label: '${currentValue}W',
+                        icon: "https://raw.githubusercontent.com/ahndee/Envoy-ST/master/devicetypes/aamann/enlighten-envoy-local.src/Solar-2.png",
+                        unit: "W",
+                        backgroundColors: [
+                            [value: 0, color: "#bc2323"],
+                            [value: 1000, color: "#1e9cbb"],
+                            [value: 2000, color: "#90d2a7"]
+                        ])
 			}
 			tileAttribute("device.power_details", key: "SECONDARY_CONTROL") {
-				attributeState("power_details", label: '${currentValue}')
+				attributeState("power_details",
+                	label: '${currentValue}')
 			}
 		}
-		standardTile("today", "today", width: 2, height: 2) {
-			state("default", label: "Today")
+		standardTile(
+        	"today",
+            "today",
+            width: 2,
+            height: 2) {
+                state("default",
+                    label: "Today")
 		}
-		valueTile("energy_str", "device.energy_str", width: 2, height: 2, decoration: "flat", wordWrap: false) {
-			state("energy_str", label: '${currentValue}')
+		valueTile(
+        	"energy_str",
+        	"device.energy_str",
+            width: 2,
+            height: 2,
+            decoration: "flat",
+            wordWrap: false) {
+                state("energy_str",
+                    label: '${currentValue}')
 		}
-		valueTile("efficiency", "device.efficiency", width: 2, height: 2) {
-			state("efficiency", label: '${currentValue}', backgroundColors: [
-				[value: 0, color: "#bc2323"],
-				[value: 2, color: "#d04e00"],
-				[value: 4, color: "#f1d801"],
-				[value: 5, color: "#90d2a7"],
-				[value: 6, color: "#44b621"]
-			])
+		valueTile(
+        	"efficiency",
+            "device.efficiency",
+            width: 2,
+            height: 2) {
+                state("efficiency",
+                    label: '${currentValue}',
+                    backgroundColors: [
+                        [value: 0, color: "#bc2323"],
+                        [value: 2, color: "#d04e00"],
+                        [value: 4, color: "#f1d801"],
+                        [value: 5, color: "#90d2a7"],
+                        [value: 6, color: "#44b621"]
+                    ])
 		}
-		standardTile("yesterday", "yesterday", width: 2, height: 2) {
-			state("default", label: "Yesterday")
+		standardTile(
+        	"yesterday",
+            "yesterday",
+            width: 2,
+            height: 2) {
+                state("default",
+                    label: "Yesterday")
 		}
-		valueTile("energy_yesterday", "device.energy_yesterday", width: 2, height: 2, decoration: "flat", wordWrap: false) {
-			state("energy_yesterday", label: '${currentValue}')
+		valueTile(
+        	"energy_yesterday",
+            "device.energy_yesterday",
+            width: 2,
+            height: 2,
+            decoration: "flat",
+            wordWrap: false) {
+                state("energy_yesterday",
+                    label: '${currentValue}')
 		}
-		valueTile("efficiency_yesterday", "device.efficiency_yesterday", width: 2, height: 2) {
-			state("efficiency_yesterday", label: '${currentValue}', backgroundColors: [
-				[value: 0, color: "#bc2323"],
-				[value: 2, color: "#d04e00"],
-				[value: 4, color: "#f1d801"],
-				[value: 5, color: "#90d2a7"],
-				[value: 6, color: "#44b621"]
-			])
+		valueTile(
+        	"efficiency_yesterday",
+            "device.efficiency_yesterday",
+            width: 2,
+            height: 2) {
+                state("efficiency_yesterday",
+                    label: '${currentValue}',
+                    backgroundColors: [
+                        [value: 0, color: "#bc2323"],
+                        [value: 2, color: "#d04e00"],
+                        [value: 4, color: "#f1d801"],
+                        [value: 5, color: "#90d2a7"],
+                        [value: 6, color: "#44b621"]
+                    ])
 		}
-		standardTile("last7days", "last7days", width: 2, height: 2) {
-			state("default", label: "Last 7 Days")
+		standardTile(
+        	"last7days",
+            "last7days",
+            width: 2,
+            height: 2) {
+                state("default",
+                    label: "Last 7 Days")
 		}
-		valueTile("energy_last7days", "device.energy_last7days", width: 2, height: 2, decoration: "flat", wordWrap: false) {
-			state("energy_last7days", label: '${currentValue}')
+		valueTile(
+        	"energy_last7days",
+            "device.energy_last7days",
+            width: 2,
+            height: 2,
+            decoration: "flat",
+            wordWrap: false) {
+                state("energy_last7days",
+                    label: '${currentValue}')
 		}
-		valueTile("efficiency_last7days", "device.efficiency_last7days", width: 2, height: 2) {
-			state("efficiency_last7days", label: '${currentValue}', backgroundColors: [
-				[value: 0, color: "#bc2323"],
-				[value: 2, color: "#d04e00"],
-				[value: 4, color: "#f1d801"],
-				[value: 5, color: "#90d2a7"],
-				[value: 6, color: "#44b621"]
-			])
+		valueTile(
+        	"efficiency_last7days",
+            "device.efficiency_last7days",
+            width: 2,
+            height: 2) {
+                state("efficiency_last7days",
+                    label: '${currentValue}',
+                    backgroundColors: [
+                        [value: 0, color: "#bc2323"],
+                        [value: 2, color: "#d04e00"],
+                        [value: 4, color: "#f1d801"],
+                        [value: 5, color: "#90d2a7"],
+                        [value: 6, color: "#44b621"]
+                    ])
 		}
-		standardTile("lifetime", "lifetime", width: 2, height: 2) {
-			state("default", label: "Lifetime")
+		standardTile(
+        	"lifetime",
+            "lifetime",
+            width: 2,
+            height: 2) {
+                state("default",
+                    label: "Lifetime")
 		}
-		valueTile("energy_life", "device.energy_life", width: 2, height: 2, decoration: "flat", wordWrap: false) {
-			state("energy_life", label: '${currentValue}')
+		valueTile(
+        	"energy_life",
+            "device.energy_life",
+            width: 2,
+            height: 2,
+            decoration: "flat",
+            wordWrap: false) {
+                state("energy_life",
+                    label: '${currentValue}')
 		}
-		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-			state("default", action:"polling.poll", label: "Refresh", icon:"st.secondary.refresh-icon")
+		standardTile(
+        	"refresh",
+            "device.refresh",
+            inactiveLabel: false,
+            decoration: "flat",
+            width: 2,
+            height: 2) {
+                state("default",
+                    action:"polling.poll",
+                    label: "Refresh",
+                    icon:"st.secondary.refresh-icon")
 		}
-		htmlTile(name:"graphHTML", action: "getGraphHTML", width: 6, height: 4, whitelist: ["www.gstatic.com"])
+		htmlTile(name:"graphHTML",
+        	action: "getGraphHTML",
+            width: 6,
+            height: 4,
+            whitelist: ["www.gstatic.com"])
+
 		main "power"
 		details(["SolarMulti", "graphHTML", "today", "energy_str", "efficiency", "yesterday", "energy_yesterday", "efficiency_yesterday", "last7days", "energy_last7days", "efficiency_last7days", "lifetime", "energy_life", "refresh"])
 	}
