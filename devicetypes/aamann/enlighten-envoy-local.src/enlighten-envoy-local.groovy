@@ -442,11 +442,12 @@ def getGraphHTML() {
 							${getPowerDataString()}
 						]);
 						var options = {
-                        	fontName: 'San Francisco, Roboto, Arial',
+							fontName: 'San Francisco, Roboto, Arial',
 							height: 240,
 							hAxis: {
 								format: 'H:mm',
-								minValue: [${state.startTime},0,0]
+								minValue: [${state.startTime},0,0],
+                                slantedText: false
 							},
 							series: {
 								0: {targetAxisIndex: 1, color: '#FFC2C2'},
