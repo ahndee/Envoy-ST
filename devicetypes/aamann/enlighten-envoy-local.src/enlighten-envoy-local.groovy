@@ -339,7 +339,7 @@ def parse(String message) {
 		state.peakpower = currentPower
 		state.today = todayDay
 		state.powerTableYesterday = powerTable
-		state.energyTableYesterday = EnergyTable
+		state.energyTableYesterday = energyTable
         powerTable = powerTable ? [] : null
         energyTable = energyTable ? [] : null
 		state.lastPower = 0
