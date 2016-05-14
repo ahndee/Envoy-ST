@@ -365,14 +365,12 @@ def parse(String message) {
 	events << createEvent(name: 'energy', value: energyToday, unit: "kWh", descriptionText: "Energy is " + String.format("%,#.3f", energyToday) + "kWh\n(Efficiency: " + String.format("%#.3f", efficiencyToday) + "kWh/kW)")
 	events << createEvent(name: 'power', value: currentPower, unit: "W", descriptionText: "Power is " + String.format("%,d", currentPower) + "W (" + String.format("%#.1f", 100*currentPower/state.maxPower) + "%)\n(" + String.format("%+,d", powerChange) + "W since last reading)")
 	// get power data for yesterday and today so we can create a graph
-	def startTime = 24
 	if (state.powerTableYesterday == null || state.energyTableYesterday == null || powerTable == null || energyTable == null) {
 		def startOfToday = timeToday("00:00", location.timeZone)
 		if (state.powerTableYesterday == null || state.energyTableYesterday == null) {
 			log.trace "Querying DB for yesterday's data…"
 			def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
 			def energyData = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
-			startTime = Math.min(powerData.size() > 0 ? powerData.reverse().first().date.format("H", location.timeZone).toInteger() : 24, startTime)
 			def dataTable = []
 			powerData.reverse().each() {
 				dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
@@ -389,7 +387,6 @@ def parse(String message) {
 			log.trace "Querying DB for today's data…"
 			def powerData = device.statesSince("power", startOfToday, [max: 288])
 			def energyData = device.statesSince("energy", startOfToday, [max: 288])
-			startTime = Math.min(powerData.size() > 0 ? powerData.reverse().first().date.format("H", location.timeZone).toInteger() : 24, startTime)
             powerTable = []
 			powerData.reverse().each() {
                 powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
@@ -401,22 +398,25 @@ def parse(String message) {
 		}
 	}
 	// add latest power & energy readings for the graph
-	if (powerTable.size() == 0 && currentPower > 0) {
-		// first non-zero power reading of the day - determine the initial x-axis value
-		startTime = new Date().format("H", location.timeZone).toInteger()
-	}
-	else if (startTime == 24) {
-		startTime = state.startTime
-	}
 	if (currentPower > 0 || powerTable.size() != 0) {
     	def newDate = new Date()
         powerTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),currentPower])
         energyTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),energyToday])
 	}
-	state.startTime = startTime
     state.powerTable = powerTable
     state.energyTable = energyTable
 	return events
+}
+
+def getStartTime() {
+	def startTime = 24
+    if (state.powerTable.size() > 0) {
+    	startTime = state.powerTable.min{it[0].toInteger()}[0].toInteger()
+    }
+	if (state.powerTableYesterday.size() > 0) {
+    	startTime = Math.min(startTime, state.powerTableYesterday.min{it[0].toInteger()}[0].toInteger())
+    }
+	return startTime
 }
 
 def getGraphHTML() {
@@ -446,7 +446,7 @@ def getGraphHTML() {
 							height: 240,
 							hAxis: {
 								format: 'H:mm',
-								minValue: [${state.startTime},0,0],
+								minValue: [${getStartTime()},0,0],
                                 slantedText: false
 							},
 							series: {
