@@ -50,182 +50,182 @@ metadata {
 	tiles(scale: 2) {
 		// this tile is used for display in device list (to get correct colorization)
 		valueTile(
-        	"power",
-        	"device.power") {
-                state("power",
-                    label: '${currentValue}W',
-                    unit: "W",
-                    icon: "https://raw.githubusercontent.com/ahndee/Envoy-ST/master/devicetypes/aamann/enlighten-envoy-local.src/Solar.png",
-                    backgroundColors: [
-                        [value: 0, color: "#bc2323"],
-                        [value: 1000, color: "#1e9cbb"],
-                        [value: 2000, color: "#90d2a7"]
-                    ])
+			"power",
+			"device.power") {
+				state("power",
+					label: '${currentValue}W',
+					unit: "W",
+					icon: "https://raw.githubusercontent.com/ahndee/Envoy-ST/master/devicetypes/aamann/enlighten-envoy-local.src/Solar.png",
+					backgroundColors: [
+						[value: 0, color: "#bc2323"],
+						[value: 1000, color: "#1e9cbb"],
+						[value: 2000, color: "#90d2a7"]
+					])
 		}
 		// this tile is used only to provide an icon in the recent events list
 		valueTile(
-        	"energy",
-            "device.energy") {
-                state("energy",
-                    label: '${currentValue}',
-                    unit: "kWh")
+			"energy",
+			"device.energy") {
+				state("energy",
+					label: '${currentValue}',
+					unit: "kWh")
 		}
 		// the following tiles are used for display in the device handler
 		multiAttributeTile(
-        	name:"SolarMulti",
-        	type:"generic",
-            width:6,
-            height:4) {
-                tileAttribute("device.power", key: "PRIMARY_CONTROL") {
-                    attributeState("power",
-                        label: '${currentValue}W',
-                        icon: "https://raw.githubusercontent.com/ahndee/Envoy-ST/master/devicetypes/aamann/enlighten-envoy-local.src/Solar-2.png",
-                        unit: "W",
-                        backgroundColors: [
-                            [value: 0, color: "#bc2323"],
-                            [value: 1000, color: "#1e9cbb"],
-                            [value: 2000, color: "#90d2a7"]
-                        ])
+			name:"SolarMulti",
+			type:"generic",
+			width:6,
+			height:4) {
+				tileAttribute("device.power", key: "PRIMARY_CONTROL") {
+					attributeState("power",
+						label: '${currentValue}W',
+						icon: "https://raw.githubusercontent.com/ahndee/Envoy-ST/master/devicetypes/aamann/enlighten-envoy-local.src/Solar-2.png",
+						unit: "W",
+						backgroundColors: [
+							[value: 0, color: "#bc2323"],
+							[value: 1000, color: "#1e9cbb"],
+							[value: 2000, color: "#90d2a7"]
+						])
 			}
 			tileAttribute("device.power_details", key: "SECONDARY_CONTROL") {
 				attributeState("power_details",
-                	label: '${currentValue}')
+					label: '${currentValue}')
 			}
 		}
 		standardTile(
-        	"today",
-            "today",
-            width: 2,
-            height: 2) {
-                state("default",
-                    label: "Today")
+			"today",
+			"today",
+			width: 2,
+			height: 2) {
+				state("default",
+					label: "Today")
 		}
 		valueTile(
-        	"energy_str",
-        	"device.energy_str",
-            width: 2,
-            height: 2,
-            decoration: "flat",
-            wordWrap: false) {
-                state("energy_str",
-                    label: '${currentValue}')
+			"energy_str",
+			"device.energy_str",
+			width: 2,
+			height: 2,
+			decoration: "flat",
+			wordWrap: false) {
+				state("energy_str",
+					label: '${currentValue}')
 		}
 		valueTile(
-        	"efficiency",
-            "device.efficiency",
-            width: 2,
-            height: 2) {
-                state("efficiency",
-                    label: '${currentValue}',
-                    backgroundColors: [
-                        [value: 0, color: "#bc2323"],
-                        [value: 2, color: "#d04e00"],
-                        [value: 4, color: "#f1d801"],
-                        [value: 5, color: "#90d2a7"],
-                        [value: 6, color: "#44b621"]
-                    ])
+			"efficiency",
+			"device.efficiency",
+			width: 2,
+			height: 2) {
+				state("efficiency",
+					label: '${currentValue}',
+					backgroundColors: [
+						[value: 0, color: "#bc2323"],
+						[value: 2, color: "#d04e00"],
+						[value: 4, color: "#f1d801"],
+						[value: 5, color: "#90d2a7"],
+						[value: 6, color: "#44b621"]
+					])
 		}
 		standardTile(
-        	"yesterday",
-            "yesterday",
-            width: 2,
-            height: 2) {
-                state("default",
-                    label: "Yesterday")
+			"yesterday",
+			"yesterday",
+			width: 2,
+			height: 2) {
+				state("default",
+					label: "Yesterday")
 		}
 		valueTile(
-        	"energy_yesterday",
-            "device.energy_yesterday",
-            width: 2,
-            height: 2,
-            decoration: "flat",
-            wordWrap: false) {
-                state("energy_yesterday",
-                    label: '${currentValue}')
+			"energy_yesterday",
+			"device.energy_yesterday",
+			width: 2,
+			height: 2,
+			decoration: "flat",
+			wordWrap: false) {
+				state("energy_yesterday",
+					label: '${currentValue}')
 		}
 		valueTile(
-        	"efficiency_yesterday",
-            "device.efficiency_yesterday",
-            width: 2,
-            height: 2) {
-                state("efficiency_yesterday",
-                    label: '${currentValue}',
-                    backgroundColors: [
-                        [value: 0, color: "#bc2323"],
-                        [value: 2, color: "#d04e00"],
-                        [value: 4, color: "#f1d801"],
-                        [value: 5, color: "#90d2a7"],
-                        [value: 6, color: "#44b621"]
-                    ])
+			"efficiency_yesterday",
+			"device.efficiency_yesterday",
+			width: 2,
+			height: 2) {
+				state("efficiency_yesterday",
+					label: '${currentValue}',
+					backgroundColors: [
+						[value: 0, color: "#bc2323"],
+						[value: 2, color: "#d04e00"],
+						[value: 4, color: "#f1d801"],
+						[value: 5, color: "#90d2a7"],
+						[value: 6, color: "#44b621"]
+					])
 		}
 		standardTile(
-        	"last7days",
-            "last7days",
-            width: 2,
-            height: 2) {
-                state("default",
-                    label: "Last 7 Days")
+			"last7days",
+			"last7days",
+			width: 2,
+			height: 2) {
+				state("default",
+					label: "Last 7 Days")
 		}
 		valueTile(
-        	"energy_last7days",
-            "device.energy_last7days",
-            width: 2,
-            height: 2,
-            decoration: "flat",
-            wordWrap: false) {
-                state("energy_last7days",
-                    label: '${currentValue}')
+			"energy_last7days",
+			"device.energy_last7days",
+			width: 2,
+			height: 2,
+			decoration: "flat",
+			wordWrap: false) {
+				state("energy_last7days",
+					label: '${currentValue}')
 		}
 		valueTile(
-        	"efficiency_last7days",
-            "device.efficiency_last7days",
-            width: 2,
-            height: 2) {
-                state("efficiency_last7days",
-                    label: '${currentValue}',
-                    backgroundColors: [
-                        [value: 0, color: "#bc2323"],
-                        [value: 2, color: "#d04e00"],
-                        [value: 4, color: "#f1d801"],
-                        [value: 5, color: "#90d2a7"],
-                        [value: 6, color: "#44b621"]
-                    ])
+			"efficiency_last7days",
+			"device.efficiency_last7days",
+			width: 2,
+			height: 2) {
+				state("efficiency_last7days",
+					label: '${currentValue}',
+					backgroundColors: [
+						[value: 0, color: "#bc2323"],
+						[value: 2, color: "#d04e00"],
+						[value: 4, color: "#f1d801"],
+						[value: 5, color: "#90d2a7"],
+						[value: 6, color: "#44b621"]
+					])
 		}
 		standardTile(
-        	"lifetime",
-            "lifetime",
-            width: 2,
-            height: 2) {
-                state("default",
-                    label: "Lifetime")
+			"lifetime",
+			"lifetime",
+			width: 2,
+			height: 2) {
+				state("default",
+					label: "Lifetime")
 		}
 		valueTile(
-        	"energy_life",
-            "device.energy_life",
-            width: 2,
-            height: 2,
-            decoration: "flat",
-            wordWrap: false) {
-                state("energy_life",
-                    label: '${currentValue}')
+			"energy_life",
+			"device.energy_life",
+			width: 2,
+			height: 2,
+			decoration: "flat",
+			wordWrap: false) {
+				state("energy_life",
+					label: '${currentValue}')
 		}
 		standardTile(
-        	"refresh",
-            "device.refresh",
-            inactiveLabel: false,
-            decoration: "flat",
-            width: 2,
-            height: 2) {
-                state("default",
-                    action:"polling.poll",
-                    label: "Refresh",
-                    icon:"st.secondary.refresh-icon")
+			"refresh",
+			"device.refresh",
+			inactiveLabel: false,
+			decoration: "flat",
+			width: 2,
+			height: 2) {
+				state("default",
+					action:"polling.poll",
+					label: "Refresh",
+					icon:"st.secondary.refresh-icon")
 		}
 		htmlTile(name:"graphHTML",
-        	action: "getGraphHTML?" + new Date().getTime(),
-            width: 6,
-            height: 4,
-            whitelist: ["www.gstatic.com"])
+			action: "getGraphHTML?" + new Date().getTime(),
+			width: 6,
+			height: 4,
+			whitelist: ["www.gstatic.com"])
 
 		main "power"
 		details(["SolarMulti", "graphHTML", "today", "energy_str", "efficiency", "yesterday", "energy_yesterday", "efficiency_yesterday", "last7days", "energy_last7days", "efficiency_last7days", "lifetime", "energy_life", "refresh"])
@@ -284,31 +284,31 @@ def pullData() {
 
 String getPowerDataString(Boolean today = true) {
 	def dataString = ""
-    if (today) {
-        state.powerTable.each() {
-            dataString += "[[${it[0]},${it[1]},0],null,null,null,${it[2]}],"
-        }
-    }
-    else {
-        state.powerTableYesterday.each() {
-            dataString += "[[${it[0]},${it[1]},0],null,${it[2]},null,null],"
-        }
-    }
+	if (today) {
+		state.powerTable.each() {
+			dataString += "[[${it[0]},${it[1]},0],null,null,null,${it[2]}],"
+		}
+	}
+	else {
+		state.powerTableYesterday.each() {
+			dataString += "[[${it[0]},${it[1]},0],null,${it[2]},null,null],"
+		}
+	}
 	return dataString
 }
 
 String getEnergyDataString(Boolean today = true) {
-    def dataString = ""
-    if (today) {
-        state.energyTable.each() {
-            dataString += "[[${it[0]},${it[1]},0],null,null,${it[2]},null],"
-        }
-    }
-    else {
-        state.energyTableYesterday.each() {
-            dataString += "[[${it[0]},${it[1]},0],${it[2]},null,null,null],"
-        }
-    }
+	def dataString = ""
+	if (today) {
+		state.energyTable.each() {
+			dataString += "[[${it[0]},${it[1]},0],null,null,${it[2]},null],"
+		}
+	}
+	else {
+		state.energyTableYesterday.each() {
+			dataString += "[[${it[0]},${it[1]},0],${it[2]},null,null,null],"
+		}
+	}
 	return dataString
 }
 
@@ -333,15 +333,15 @@ def parse(String message) {
 	def energyLife = (data.wattHoursLifetime/1000000).toFloat()
 	def currentPower = data.wattsNow
 	def todayDay = new Date().format("dd",location.timeZone)
-    def powerTable = state.powerTable
-    def energyTable = state.energyTable
+	def powerTable = state.powerTable
+	def energyTable = state.energyTable
 	if (!state.today || state.today != todayDay) {
 		state.peakpower = currentPower
 		state.today = todayDay
 		state.powerTableYesterday = powerTable
 		state.energyTableYesterday = energyTable
-        powerTable = powerTable ? [] : null
-        energyTable = energyTable ? [] : null
+		powerTable = powerTable ? [] : null
+		energyTable = energyTable ? [] : null
 		state.lastPower = 0
 		sendEvent(name: 'energy_yesterday', value: device.currentState("energy_str")?.value, displayed: false)
 		sendEvent(name: 'efficiency_yesterday', value: device.currentState("efficiency")?.value, displayed: false)
@@ -387,35 +387,35 @@ def parse(String message) {
 			log.trace "Querying DB for today's data…"
 			def powerData = device.statesSince("power", startOfToday, [max: 288])
 			def energyData = device.statesSince("energy", startOfToday, [max: 288])
-            powerTable = []
+			powerTable = []
 			powerData.reverse().each() {
-                powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+				powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
 			}
-            energyTable = []
+			energyTable = []
 			energyData.reverse().drop(1).each() {
-                energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+				energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
 			}
 		}
 	}
 	// add latest power & energy readings for the graph
 	if (currentPower > 0 || powerTable.size() != 0) {
-    	def newDate = new Date()
-        powerTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),currentPower])
-        energyTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),energyToday])
+		def newDate = new Date()
+		powerTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),currentPower])
+		energyTable.add([newDate.format("H", location.timeZone),newDate.format("m", location.timeZone),energyToday])
 	}
-    state.powerTable = powerTable
-    state.energyTable = energyTable
+	state.powerTable = powerTable
+	state.energyTable = energyTable
 	return events
 }
 
 def getStartTime() {
 	def startTime = 24
-    if (state.powerTable.size() > 0) {
-    	startTime = state.powerTable.min{it[0].toInteger()}[0].toInteger()
-    }
+	if (state.powerTable.size() > 0) {
+		startTime = state.powerTable.min{it[0].toInteger()}[0].toInteger()
+	}
 	if (state.powerTableYesterday.size() > 0) {
-    	startTime = Math.min(startTime, state.powerTableYesterday.min{it[0].toInteger()}[0].toInteger())
-    }
+		startTime = Math.min(startTime, state.powerTableYesterday.min{it[0].toInteger()}[0].toInteger())
+	}
 	return startTime
 }
 
@@ -447,7 +447,7 @@ def getGraphHTML() {
 							hAxis: {
 								format: 'H:mm',
 								minValue: [${getStartTime()},0,0],
-                                slantedText: false
+								slantedText: false
 							},
 							series: {
 								0: {targetAxisIndex: 1, color: '#FFC2C2'},
