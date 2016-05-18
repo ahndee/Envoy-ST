@@ -222,7 +222,7 @@ metadata {
                     icon:"st.secondary.refresh-icon")
 		}
 		htmlTile(name:"graphHTML",
-        	action: "getGraphHTML",
+        	action: "getGraphHTML?" + new Date().getTime(),
             width: 6,
             height: 4,
             whitelist: ["www.gstatic.com"])
