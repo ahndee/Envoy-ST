@@ -223,6 +223,7 @@ metadata {
 		}
 		htmlTile(name:"graphHTML",
 			action: "getGraphHTML?" + new Date().getTime(),
+			refreshInterval: 1,
 			width: 6,
 			height: 4,
 			whitelist: ["www.gstatic.com"])
@@ -423,6 +424,7 @@ def getGraphHTML() {
 	renderHTML {
 		head {
 			"""
+				<meta http-equiv="expires" content="-1">
 				<style type="text/css">body,div {margin:0;padding:0}</style>
 				<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 				<script type="text/javascript">
