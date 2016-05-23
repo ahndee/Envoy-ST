@@ -222,7 +222,7 @@ metadata {
 					icon:"st.secondary.refresh-icon")
 		}
 		htmlTile(name:"graphHTML",
-			action: "getGraphHTML?*=" + new Date().getTime(),
+			action: "getGraphHTML",
 			refreshInterval: 1,
 			width: 6,
 			height: 4,
@@ -421,16 +421,25 @@ def getStartTime() {
 }
 
 def getGraphHTML() {
-	renderHTML {
-		head {
-			"""
+	def html = """
+    	<!DOCTYPE html>
+    	<html>
+        	<head>
+                <meta http-equiv="cache-control" content="max-age=0"/>
+                <meta http-equiv="cache-control" content="no-cache"/>
+                <meta http-equiv="expires" content="0"/>
+                <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
+                <meta http-equiv="pragma" content="no-cache"/>
+                <meta name="apple-mobile-web-app-capable" content="yes">
+                <meta name="viewport" content="width = device-width">
+                <meta name="viewport" content="initial-scale = 1.0, user-scalable=no">
 				<style type="text/css">body,div {margin:0;padding:0}</style>
 				<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 				<script type="text/javascript">
 					google.charts.load('current', {packages: ['corechart']});
 					google.charts.setOnLoadCallback(drawGraph);
 					function drawGraph() {
-						var data = new google.visualization.DataTable();
+                    	var data = new google.visualization.DataTable();
 						data.addColumn('timeofday', 'time');
 						data.addColumn('number', 'Energy (Yesterday)');
 						data.addColumn('number', 'Power (Yesterday)');
@@ -482,12 +491,11 @@ def getGraphHTML() {
 						chart.draw(data, options);
 					}
 				</script>
-			"""
-		}
-		body {
-			"""
+            </head>
+            <body>
 				<div id="chart_div"></div>
-			"""
-		}
-	}
+            </body>
+        </html>
+    """
+    render contentType: "text/html", data: html, status: 200
 }
