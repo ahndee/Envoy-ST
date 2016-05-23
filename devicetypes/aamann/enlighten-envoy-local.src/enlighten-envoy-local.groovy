@@ -222,7 +222,7 @@ metadata {
 					icon:"st.secondary.refresh-icon")
 		}
 		htmlTile(name:"graphHTML",
-			action: "getGraphHTML?" + new Date().getTime(),
+			action: "getGraphHTML?*=" + new Date().getTime(),
 			refreshInterval: 1,
 			width: 6,
 			height: 4,
@@ -424,7 +424,6 @@ def getGraphHTML() {
 	renderHTML {
 		head {
 			"""
-				<meta http-equiv="expires" content="-1">
 				<style type="text/css">body,div {margin:0;padding:0}</style>
 				<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 				<script type="text/javascript">
@@ -452,8 +451,8 @@ def getGraphHTML() {
 								slantedText: false
 							},
 							series: {
-								0: {targetAxisIndex: 1, color: '#FFC2C2'},
-								1: {targetAxisIndex: 0, color: '#D1DFFF'},
+								0: {targetAxisIndex: 1, color: '#FFC2C2', lineWidth: 1},
+								1: {targetAxisIndex: 0, color: '#D1DFFF', lineWidth: 1},
 								2: {targetAxisIndex: 1, color: '#FF0000'},
 								3: {targetAxisIndex: 0, color: '#004CFF'}
 							},
