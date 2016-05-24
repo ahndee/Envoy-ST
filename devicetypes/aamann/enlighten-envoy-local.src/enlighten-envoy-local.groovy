@@ -430,79 +430,79 @@ def getStartTime() {
 
 def getGraphHTML() {
 	def html = """
-    	<!DOCTYPE html>
-    	<html>
-        	<head>
-                <meta http-equiv="cache-control" content="max-age=0"/>
-                <meta http-equiv="cache-control" content="no-cache"/>
-                <meta http-equiv="expires" content="0"/>
-                <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
-                <meta http-equiv="pragma" content="no-cache"/>
-                <meta name="viewport" content="width = device-width">
-                <meta name="viewport" content="initial-scale = 1.0, user-scalable=no">
-				<style type="text/css">body,div {margin:0;padding:0}</style>
-				<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-				<script type="text/javascript">
-					google.charts.load('current', {packages: ['corechart']});
-					google.charts.setOnLoadCallback(drawGraph);
-					function drawGraph() {
-                    	var data = new google.visualization.DataTable();
-						data.addColumn('timeofday', 'time');
-						data.addColumn('number', 'Energy (Yesterday)');
-						data.addColumn('number', 'Power (Yesterday)');
-						data.addColumn('number', 'Energy (Today)');
-						data.addColumn('number', 'Power (Today)');
-						data.addRows([
-							${getEnergyDataString(false)}
-							${getPowerDataString(false)}
-							${getEnergyDataString()}
-							${getPowerDataString()}
-						]);
-						var options = {
-							fontName: 'San Francisco, Roboto, Arial',
-							height: 240,
-							hAxis: {
-								format: 'H:mm',
-								minValue: [${getStartTime()},0,0],
-								slantedText: false
-							},
-							series: {
-								0: {targetAxisIndex: 1, color: '#FFC2C2', lineWidth: 1},
-								1: {targetAxisIndex: 0, color: '#D1DFFF', lineWidth: 1},
-								2: {targetAxisIndex: 1, color: '#FF0000'},
-								3: {targetAxisIndex: 0, color: '#004CFF'}
-							},
-							vAxes: {
-								0: {
-									title: 'Power (W)',
-									format: 'decimal',
-									textStyle: {color: '#004CFF'},
-									titleTextStyle: {color: '#004CFF'}
+		<!DOCTYPE html>
+			<html>
+				<head>
+					<meta http-equiv="cache-control" content="max-age=0"/>
+					<meta http-equiv="cache-control" content="no-cache"/>
+					<meta http-equiv="expires" content="0"/>
+					<meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
+					<meta http-equiv="pragma" content="no-cache"/>
+					<meta name="viewport" content="width = device-width">
+					<meta name="viewport" content="initial-scale = 1.0, user-scalable=no">
+					<style type="text/css">body,div {margin:0;padding:0}</style>
+					<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+					<script type="text/javascript">
+						google.charts.load('current', {packages: ['corechart']});
+						google.charts.setOnLoadCallback(drawGraph);
+						function drawGraph() {
+							var data = new google.visualization.DataTable();
+							data.addColumn('timeofday', 'time');
+							data.addColumn('number', 'Energy (Yesterday)');
+							data.addColumn('number', 'Power (Yesterday)');
+							data.addColumn('number', 'Energy (Today)');
+							data.addColumn('number', 'Power (Today)');
+							data.addRows([
+								${getEnergyDataString(false)}
+								${getPowerDataString(false)}
+								${getEnergyDataString()}
+								${getPowerDataString()}
+							]);
+							var options = {
+								fontName: 'San Francisco, Roboto, Arial',
+								height: 240,
+								hAxis: {
+									format: 'H:mm',
+									minValue: [${getStartTime()},0,0],
+									slantedText: false
 								},
-								1: {
-									title: 'Energy (kWh)',
-									format: 'decimal',
-									textStyle: {color: '#FF0000'},
-									titleTextStyle: {color: '#FF0000'}
+								series: {
+									0: {targetAxisIndex: 1, color: '#FFC2C2', lineWidth: 1},
+									1: {targetAxisIndex: 0, color: '#D1DFFF', lineWidth: 1},
+									2: {targetAxisIndex: 1, color: '#FF0000'},
+									3: {targetAxisIndex: 0, color: '#004CFF'}
+								},
+								vAxes: {
+									0: {
+										title: 'Power (W)',
+										format: 'decimal',
+										textStyle: {color: '#004CFF'},
+										titleTextStyle: {color: '#004CFF'}
+									},
+									1: {
+										title: 'Energy (kWh)',
+										format: 'decimal',
+										textStyle: {color: '#FF0000'},
+										titleTextStyle: {color: '#FF0000'}
+									}
+								},
+								legend: {
+									position: 'none'
+								},
+								chartArea: {
+									width: '72%',
+									height: '85%'
 								}
-							},
-							legend: {
-								position: 'none'
-							},
-							chartArea: {
-								width: '72%',
-								height: '85%'
-							}
-						};
-						var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
-						chart.draw(data, options);
-					}
-				</script>
-            </head>
-            <body>
-				<div id="chart_div"></div>
-            </body>
-        </html>
-    """
-    render contentType: "text/html", data: html, status: 200
+							};
+							var chart = new google.visualization.AreaChart(document.getElementById('chart_div'));
+							chart.draw(data, options);
+						}
+					</script>
+				</head>
+				<body>
+					<div id="chart_div"></div>
+				</body>
+			</html>
+		"""
+		render contentType: "text/html", data: html, status: 200
 }
