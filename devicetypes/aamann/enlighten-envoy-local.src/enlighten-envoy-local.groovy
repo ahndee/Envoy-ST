@@ -504,5 +504,5 @@ def getGraphHTML() {
 				</body>
 			</html>
 		"""
-		render contentType: "text/html", data: html, status: 200
+	render contentType: "text/html", data: html, status: 200
 }
