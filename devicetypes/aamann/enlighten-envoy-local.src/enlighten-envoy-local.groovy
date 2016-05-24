@@ -13,7 +13,11 @@
  *	for the specific language governing permissions and limitations under the License.
  *
  */
- 
+
+def version() {
+	return "1.0.0 (20160524)\n© 2016 Andreas Amann"
+}
+
 preferences {
 	input("confIpAddr", "string", title:"Envoy Local IP Address",
 		required: true, displayDuringSetup: true)
@@ -21,11 +25,15 @@ preferences {
 		defaultValue:"80", required: true, displayDuringSetup: true)
 	input("confNumInverters", "number", title:"Number of Inverters/Panels",
 		required: true, displayDuringSetup: true)
-	input("confInverterSize", "number", title:"Inverter Size (W)",
+    input(title: "", description: "Inverter Size (W)\n\nRated maximum power in Watts for each inverter\n\nUse '225' for M215 and '250' for M250", type: "paragraph", element: "paragraph")
+	input("confInverterSize", "number", title:"",
 		required: true, displayDuringSetup: true)
-	input("confPanelSize", "number", title:"Panel Size (W)",
+    input(title: "", description: "Panel Size (W)\n\nRated maximum power in Watts for each panel\n\nThis can be different than the maximum inverter power above", type: "paragraph", element: "paragraph")
+	input("confPanelSize", "number", title:"",
 		required: true, displayDuringSetup: true)
+    input(title:"", description: "Version: ${version()}", type: "paragraph", element: "paragraph")
 }
+
 metadata {
 	definition (name: "Enlighten Envoy (local)", namespace: "aamann", author: "Andreas Amann") {
 		capability "Power Meter"
@@ -430,7 +438,6 @@ def getGraphHTML() {
                 <meta http-equiv="expires" content="0"/>
                 <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT"/>
                 <meta http-equiv="pragma" content="no-cache"/>
-                <meta name="apple-mobile-web-app-capable" content="yes">
                 <meta name="viewport" content="width = device-width">
                 <meta name="viewport" content="initial-scale = 1.0, user-scalable=no">
 				<style type="text/css">body,div {margin:0;padding:0}</style>
