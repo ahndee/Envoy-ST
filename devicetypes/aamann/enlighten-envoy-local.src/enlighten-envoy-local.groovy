@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.0.1 (20160524)\n© 2016 Andreas Amann"
+	return "1.1.0 (20160524)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -291,32 +291,22 @@ def pullData() {
 	])
 }
 
-String getPowerDataString(Boolean today = true) {
+String getDataString(String type = "power", Boolean today = true) {
 	def dataString = ""
+	def dataTable
+	def valueIndex
 	if (today) {
-		state.powerTable.each() {
-			dataString += "[[${it[0]},${it[1]},0],null,null,null,${it[2]}],"
-		}
+		dataTable = (type == "power") ? state.powerTable : state.energyTable
+		valueIndex = (type == "power") ? 4 : 3
 	}
 	else {
-		state.powerTableYesterday.each() {
-			dataString += "[[${it[0]},${it[1]},0],null,${it[2]},null,null],"
-		}
+		dataTable = (type == "power") ? state.powerTableYesterday : state.energyTableYesterday
+		valueIndex = (type == "power") ? 2 : 1
 	}
-	return dataString
-}
-
-String getEnergyDataString(Boolean today = true) {
-	def dataString = ""
-	if (today) {
-		state.energyTable.each() {
-			dataString += "[[${it[0]},${it[1]},0],null,null,${it[2]},null],"
-		}
-	}
-	else {
-		state.energyTableYesterday.each() {
-			dataString += "[[${it[0]},${it[1]},0],${it[2]},null,null,null],"
-		}
+	dataTable.each() {
+		def dataArray = [[it[0],it[1],0],null,null,null,null]
+		dataArray[valueIndex] = it[2]
+		dataString += dataArray.toString() + ","
 	}
 	return dataString
 }
@@ -453,10 +443,10 @@ def getGraphHTML() {
 							data.addColumn('number', 'Energy (Today)');
 							data.addColumn('number', 'Power (Today)');
 							data.addRows([
-								${getEnergyDataString(false)}
-								${getPowerDataString(false)}
-								${getEnergyDataString()}
-								${getPowerDataString()}
+								${getDataString("energy", false)}
+								${getDataString("power", false)}
+								${getDataString("energy")}
+								${getDataString()}
 							]);
 							var options = {
 								fontName: 'San Francisco, Roboto, Arial',
