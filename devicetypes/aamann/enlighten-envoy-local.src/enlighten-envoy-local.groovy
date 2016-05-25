@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.0.0 (20160524)\n© 2016 Andreas Amann"
+	return "1.0.1 (20160524)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -25,10 +25,10 @@ preferences {
 		defaultValue:"80", required: true, displayDuringSetup: true)
 	input("confNumInverters", "number", title:"Number of Inverters/Panels",
 		required: true, displayDuringSetup: true)
-    input(title: "", description: "Inverter Size (W)\n\nRated maximum power in Watts for each inverter\n\nUse '225' for M215 and '250' for M250", type: "paragraph", element: "paragraph")
+    input(title: "", description: "Inverter Size (W)\n\nRated maximum power in Watts for each inverter\n\nUse '225' for M215 and '250' for M250", type: "paragraph", element: "paragraph", displayDuringSetup: true)
 	input("confInverterSize", "number", title:"",
 		required: true, displayDuringSetup: true)
-    input(title: "", description: "Panel Size (W)\n\nRated maximum power in Watts for each panel\n\nThis can be different than the maximum inverter power above", type: "paragraph", element: "paragraph")
+    input(title: "", description: "Panel Size (W)\n\nRated maximum power in Watts for each panel\n\nThis can be different than the maximum inverter power above", type: "paragraph", element: "paragraph", displayDuringSetup: true)
 	input("confPanelSize", "number", title:"",
 		required: true, displayDuringSetup: true)
     input(title:"", description: "Version: ${version()}", type: "paragraph", element: "paragraph")
