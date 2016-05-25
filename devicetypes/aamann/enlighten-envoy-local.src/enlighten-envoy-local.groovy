@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.1.0 (20160524)\n© 2016 Andreas Amann"
+	return "1.1.1 (20160524)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -291,21 +291,26 @@ def pullData() {
 	])
 }
 
-String getDataString(String type = "power", Boolean today = true) {
+String getDataString(Integer seriesIndex) {
 	def dataString = ""
-	def dataTable
-	def valueIndex
-	if (today) {
-		dataTable = (type == "power") ? state.powerTable : state.energyTable
-		valueIndex = (type == "power") ? 4 : 3
-	}
-	else {
-		dataTable = (type == "power") ? state.powerTableYesterday : state.energyTableYesterday
-		valueIndex = (type == "power") ? 2 : 1
+	def dataTable = []
+	switch (seriesIndex) {
+		case 1:
+			dataTable = state.energyTableYesterday
+			break
+		case 2:
+			dataTable = state.powerTableYesterday
+			break
+		case 3:
+			dataTable = state.energyTable
+			break
+		case 4:
+			dataTable = state.powerTable
+			break
 	}
 	dataTable.each() {
 		def dataArray = [[it[0],it[1],0],null,null,null,null]
-		dataArray[valueIndex] = it[2]
+		dataArray[seriesIndex] = it[2]
 		dataString += dataArray.toString() + ","
 	}
 	return dataString
@@ -443,10 +448,10 @@ def getGraphHTML() {
 							data.addColumn('number', 'Energy (Today)');
 							data.addColumn('number', 'Power (Today)');
 							data.addRows([
-								${getDataString("energy", false)}
-								${getDataString("power", false)}
-								${getDataString("energy")}
-								${getDataString()}
+								${getDataString(1)}
+								${getDataString(2)}
+								${getDataString(3)}
+								${getDataString(4)}
 							]);
 							var options = {
 								fontName: 'San Francisco, Roboto, Arial',
