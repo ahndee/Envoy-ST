@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "0.1.1 (20160526)\n© 2016 Andreas Amann"
+	return "0.1.2 (20160602)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -166,7 +166,7 @@ metadata {
 			width: 2,
 			height: 2) {
 				state("default",
-					label: "Last Month")
+					label: "This Month")
 		}
 		valueTile(
 			"energy_lastMonth",
@@ -199,7 +199,7 @@ metadata {
 			width: 2,
 			height: 2) {
 				state("default",
-					label: "Last Year")
+					label: "This Year")
 		}
 		valueTile(
 			"energy_lastYear",
@@ -301,7 +301,7 @@ def pullData() {
 		def energyLastMonth = (data.overview.lastMonthData.energy/1000).toFloat()
 		def energyLastYear = (data.overview.lastYearData.energy/1000000).toFloat()
 		def energyLife = (data.overview.lifeTimeData.energy/1000000).toFloat()
-		def currentPower = data.overview.currentPower.power.toFloat()
+		def currentPower = data.overview.currentPower.power.toInteger()
 		def todayDay = new Date().format("dd",location.timeZone)
 		def powerTable = state.powerTable
 		def energyTable = state.energyTable
@@ -330,9 +330,10 @@ def pullData() {
 		events << createEvent(name: 'energy_life', value: String.format("%,#.3f", energyLife) + "MWh", displayed: false)
 		def efficiencyToday = (1000*energyToday/settings.confSystemSize).toFloat()
 		events << createEvent(name: 'efficiency', value: String.format("%#.3f", efficiencyToday) + "\nkWh/kW", displayed: false)
-		def efficiencyLastMonth = (1000/30*energyLastMonth/settings.confSystemSize).toFloat()
+		def efficiencyLastMonth = (1000/todayDay.toInteger()*energyLastMonth/settings.confSystemSize).toFloat()
 		events << createEvent(name: 'efficiency_lastMonth', value: String.format("%#.3f", efficiencyLastMonth) + "\nkWh/kW", displayed: false)
-		def efficiencyLastYear = (1000000/365*energyLastYear/settings.confSystemSize).toFloat()
+		def dayInYear = new Date().format("D", location.timeZone).toInteger()
+		def efficiencyLastYear = (1000000/dayInYear*energyLastYear/settings.confSystemSize).toFloat()
 		events << createEvent(name: 'efficiency_lastYear', value: String.format("%#.3f", efficiencyLastYear) + "\nkWh/kW", displayed: false)
 		events << createEvent(name: 'energy_str', value: String.format("%,#.3f", energyToday) + "kWh", displayed: false)
 		events << createEvent(name: 'energy', value: energyToday, unit: "kWh", descriptionText: "Energy is " + String.format("%,#.3f", energyToday) + "kWh\n(Efficiency: " + String.format("%#.3f", efficiencyToday) + "kWh/kW)")
