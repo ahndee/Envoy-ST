@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.1.1 (20160524)\n© 2016 Andreas Amann"
+	return "1.1.2 (20160608)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -371,10 +371,18 @@ def parse(String message) {
 	// get power data for yesterday and today so we can create a graph
 	if (state.powerTableYesterday == null || state.energyTableYesterday == null || powerTable == null || energyTable == null) {
 		def startOfToday = timeToday("00:00", location.timeZone)
+		def newValues
 		if (state.powerTableYesterday == null || state.energyTableYesterday == null) {
 			log.trace "Querying DB for yesterday's data…"
 			def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
+			// work around a bug where the platform would return less than the requested number of events (as June 2016, only 50 events are returned)
+			while ((newValues = device.statesBetween("power", startOfToday - 1, powerData.last().date, [max: 288])).size()) {
+				powerData += newValues
+			}
 			def energyData = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
+			while ((newValues = device.statesBetween("energy", startOfToday - 1, energyData.last().date, [max: 288])).size()) {
+				energyData += newValues
+			}
 			def dataTable = []
 			powerData.reverse().each() {
 				dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
@@ -390,7 +398,13 @@ def parse(String message) {
 		if (powerTable == null || energyTable == null) {
 			log.trace "Querying DB for today's data…"
 			def powerData = device.statesSince("power", startOfToday, [max: 288])
+			while ((newValues = device.statesBetween("power", startOfToday, powerData.last().date, [max: 288])).size()) {
+				powerData += newValues
+			}
 			def energyData = device.statesSince("energy", startOfToday, [max: 288])
+			while ((newValues = device.statesBetween("energy", startOfToday, energyData.last().date, [max: 288])).size()) {
+				energyData += newValues
+			}
 			powerTable = []
 			powerData.reverse().each() {
 				powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
@@ -414,10 +428,10 @@ def parse(String message) {
 
 def getStartTime() {
 	def startTime = 24
-	if (state.powerTable.size() > 0) {
+	if (state.powerTable.size()) {
 		startTime = state.powerTable.min{it[0].toInteger()}[0].toInteger()
 	}
-	if (state.powerTableYesterday.size() > 0) {
+	if (state.powerTableYesterday.size()) {
 		startTime = Math.min(startTime, state.powerTableYesterday.min{it[0].toInteger()}[0].toInteger())
 	}
 	return startTime
