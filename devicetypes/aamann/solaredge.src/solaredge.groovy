@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "0.1.3 (20160608)\n© 2016 Andreas Amann"
+	return "0.1.4 (20160715)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -344,44 +344,52 @@ def pullData() {
 			def newValues
 			if (state.powerTableYesterday == null || state.energyTableYesterday == null) {
 				log.trace "Querying DB for yesterday's data…"
-				def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
-                // work around a bug where the platform would return less than the requested number of events (as June 2016, only 50 events are returned)
-                while ((newValues = device.statesBetween("power", startOfToday - 1, powerData.last().date, [max: 288])).size()) {
-                    powerData += newValues
-                }
-				def energyData = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
-                while ((newValues = device.statesBetween("energy", startOfToday - 1, energyData.last().date, [max: 288])).size()) {
-                    energyData += newValues
-                }
 				def dataTable = []
-				powerData.reverse().each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+				def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
+				if (powerData.size()) {
+                    // work around a bug where the platform would return less than the requested number of events (as June 2016, only 50 events are returned)
+                    while ((newValues = device.statesBetween("power", startOfToday - 1, powerData.last().date, [max: 288])).size()) {
+                        powerData += newValues
+                    }
+                    powerData.reverse().each() {
+                        dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+                    }
 				}
 				state.powerTableYesterday = dataTable
 				dataTable = []
-				// we drop the first point after midnight (0 energy) in order to have the graph scale correctly
-				energyData.reverse().drop(1).each() {
-					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+				def energyData = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
+				if (energyData.size()) {
+                    while ((newValues = device.statesBetween("energy", startOfToday - 1, energyData.last().date, [max: 288])).size()) {
+                        energyData += newValues
+                    }
+                    // we drop the first point after midnight (0 energy) in order to have the graph scale correctly
+                    energyData.reverse().drop(1).each() {
+                        dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+                    }
 				}
 				state.energyTableYesterday = dataTable
 			}
 			if (powerTable == null || energyTable == null) {
 				log.trace "Querying DB for today's data…"
-				def powerData = device.statesSince("power", startOfToday, [max: 288])
-                while ((newValues = device.statesBetween("power", startOfToday, powerData.last().date, [max: 288])).size()) {
-                    powerData += newValues
-                }
-				def energyData = device.statesSince("energy", startOfToday, [max: 288])
-                while ((newValues = device.statesBetween("energy", startOfToday, energyData.last().date, [max: 288])).size()) {
-                    energyData += newValues
-                }
 				powerTable = []
-				powerData.reverse().each() {
-					powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+				def powerData = device.statesSince("power", startOfToday, [max: 288])
+				if (powerData.size()) {
+                    while ((newValues = device.statesBetween("power", startOfToday, powerData.last().date, [max: 288])).size()) {
+                        powerData += newValues
+                    }
+                    powerData.reverse().each() {
+                        powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+                    }
 				}
 				energyTable = []
-				energyData.reverse().drop(1).each() {
-					energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+				def energyData = device.statesSince("energy", startOfToday, [max: 288])
+				if (energyData.size()) {
+                    while ((newValues = device.statesBetween("energy", startOfToday, energyData.last().date, [max: 288])).size()) {
+                        energyData += newValues
+                    }
+                    energyData.reverse().drop(1).each() {
+                        energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+                    }
 				}
 			}
 		}
