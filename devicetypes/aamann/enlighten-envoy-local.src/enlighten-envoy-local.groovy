@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.1.3 (20160715)\n© 2016 Andreas Amann"
+	return "1.2.0 (20161226)\n© 2016 Andreas Amann"
 }
 
 preferences {
@@ -255,6 +255,7 @@ def refresh() {
 
 def updated() {
 	log.trace("$device.displayName updated with settings: ${settings.inspect()}")
+	state.remove('api')
 	state.maxPower = settings.confNumInverters * settings.confInverterSize
 	pullData()
 }
@@ -282,11 +283,11 @@ private String getHostAddress() {
 }
 
 def pullData() {
-	log.debug "${device.displayName} - requesting latest data from Envoy…"
+	log.debug "${device.displayName} - requesting latest data from Envoy via " + (state.api == "HTML" ? "HTML" : "JSON API") + "…"
 	updateDNI()
 	return new physicalgraph.device.HubAction([
 		method: "GET",
-		path: "/api/v1/production",
+		path: (state.api == "HTML" ? "" : "/api/v1") + "/production",
 		headers: [HOST:getHostAddress()]
 	])
 }
@@ -316,16 +317,49 @@ String getDataString(Integer seriesIndex) {
 	return dataString
 }
 
+private Integer retrieveProductionValue(String body, String heading) {
+	def val = 0
+	def patternString = "(?ms).*?${heading}.*?<td>\\s*([\\d\\.]+)\\s*([kM]?W)h?<.*"
+	if (body ==~ /${patternString}/) {
+		body.replaceFirst(/${patternString}/) {all, num, unit ->
+			val = Double.parseDouble(num)
+			if (unit == "kW") {
+				val *= 1000
+			}
+			else if (unit == "MW") {
+				val *= 1000000
+			}
+			return true
+		}
+		return val
+	}
+	return null
+}
+
+private Map parseHTMLProductionData(String body) {
+	def data = [:]
+	data.wattHoursToday = retrieveProductionValue(body, "Today")
+	data.wattHoursSevenDays = retrieveProductionValue(body, "Past Week")
+	data.wattHoursLifetime = retrieveProductionValue(body, "Since Installation")
+	data.wattsNow = retrieveProductionValue(body, "Currently")
+	return data
+}
+
 def parse(String message) {
 	def msg = parseLanMessage(message)
 	if (!state.mac || state.mac != msg.mac) {
 		state.mac = msg.mac
 	}
-	if (!msg.body) {
-		log.error "No HTTP body found in '${message}'"
+	if (!state.api && (msg.status != 200 || !msg.json)) {
+		log.debug "${device.displayName} - JSON API not available, falling back to HTML interface"
+		state.api = "HTML"
 		return null
 	}
-	def data = msg.json
+	if (!msg.body) {
+		log.error "${device.displayName} - No HTTP body found in '${message}'"
+		return null
+	}
+	def data = state.api == "HTML" ? parseHTMLProductionData(msg.body) : msg.json
 	if (data == state.lastData) {
 		log.debug "${device.displayName} - no new data"
 		return null
@@ -376,26 +410,26 @@ def parse(String message) {
 			log.trace "Querying DB for yesterday's data…"
 			def dataTable = []
 			def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
-			// work around a bug where the platform would return less than the requested number of events (as June 2016, only 50 events are returned)
+			// work around a bug where the platform would return less than the requested number of events (as of June 2016, only 50 events are returned)
 			if (powerData.size()) {
-                while ((newValues = device.statesBetween("power", startOfToday - 1, powerData.last().date, [max: 288])).size()) {
-                    powerData += newValues
-                }
-                powerData.reverse().each() {
-                    dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
-                }
+				while ((newValues = device.statesBetween("power", startOfToday - 1, powerData.last().date, [max: 288])).size()) {
+					powerData += newValues
+				}
+				powerData.reverse().each() {
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+				}
 			}
 			state.powerTableYesterday = dataTable
 			dataTable = []
 			def energyData = device.statesBetween("energy", startOfToday - 1, startOfToday, [max: 288])
 			if (energyData.size()) {
-                while ((newValues = device.statesBetween("energy", startOfToday - 1, energyData.last().date, [max: 288])).size()) {
-                    energyData += newValues
-                }
-                // we drop the first point after midnight (0 energy) in order to have the graph scale correctly
-                energyData.reverse().drop(1).each() {
-                    dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
-                }
+				while ((newValues = device.statesBetween("energy", startOfToday - 1, energyData.last().date, [max: 288])).size()) {
+					energyData += newValues
+				}
+				// we drop the first point after midnight (0 energy) in order to have the graph scale correctly
+				energyData.reverse().drop(1).each() {
+					dataTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+				}
 			}
 			state.energyTableYesterday = dataTable
 		}
@@ -404,22 +438,22 @@ def parse(String message) {
 			powerTable = []
 			def powerData = device.statesSince("power", startOfToday, [max: 288])
 			if (powerData.size()) {
-                while ((newValues = device.statesBetween("power", startOfToday, powerData.last().date, [max: 288])).size()) {
-                    powerData += newValues
-                }
-                powerData.reverse().each() {
-                    powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
-                }
+				while ((newValues = device.statesBetween("power", startOfToday, powerData.last().date, [max: 288])).size()) {
+					powerData += newValues
+				}
+				powerData.reverse().each() {
+					powerTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.integerValue])
+				}
 			}
 			energyTable = []
 			def energyData = device.statesSince("energy", startOfToday, [max: 288])
 			if (energyData.size()) {
-                while ((newValues = device.statesBetween("energy", startOfToday, energyData.last().date, [max: 288])).size()) {
-                    energyData += newValues
-                }
-                energyData.reverse().drop(1).each() {
-                    energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
-                }
+				while ((newValues = device.statesBetween("energy", startOfToday, energyData.last().date, [max: 288])).size()) {
+					energyData += newValues
+				}
+				energyData.reverse().drop(1).each() {
+					energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
+				}
 			}
 		}
 	}
