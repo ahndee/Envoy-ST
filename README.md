@@ -2,15 +2,7 @@
 This is a [SmartThings](http://smartthings.com) device type handler (henceforth 'DTH') for the [Enphase Envoy](https://enphase.com/en-us/products-and-services/envoy) solar monitoring device. This repository also contains a similar DTH that I adapted for [SolarEdge PV Monitoring Portal](http://www.solaredge.us/groups/us/products/pv-monitoring) inverters (please note that my testing for that driver is extremely limited as I don't have such a system - [this thread in the ST community forums](https://community.smartthings.com/t/solaredge-device-type/30950) is probably the best place to talk about the SolarEdge DTH).
 
 ### Requirements
-This DTH directly accesses the Envoy via its local LAN address to query for the latest data (this requires **Envoy software release R3.9 or later** - please note that I have not tested this with an *Envoy-S* so I don't know whether it works for those devices or not). To test whether the device handler is going to work, open `http://IP/api/v1/production` (where `IP` denotes the IP address of the Envoy on the local network) in a browser - the resulting output should look like the following:
-```
-{
-  "wattHoursToday": 2247,
-  "wattHoursSevenDays": 146044,
-  "wattHoursLifetime": 15884214,
-  "wattsNow": 811
-}
-```
+This DTH directly accesses the Envoy via its local LAN address to query for the latest data (please note that I have not tested this with an *Envoy-S* so I don't know whether it works for those devices or not). The DTH supports both Envoy software release 3.9 or later (which supports retrieving JSON data for the production at `http://IP/api/v1/production`) as well as older firmware lacking the JSON API. The DTH will automatically detect whether the JSON API is available and otherwise fall back to parsing the Envoy's HTML output (please note that the data resolution for the HTML pages is slightly less accurate and that you will only start to get data after the second refresh for those devices).
 
 ### Device View in the SmartThings Mobile Application
 The DTH shows the latest data from the device (current power, change since last reading, peak reading for the day) in the top tile as well as a chart for the data of the last two days (power in blue with units on the left axis, energy in red with units on the right axis; yesterday's data is using fainter colors). Data is only available from the first installation of the DTH so yesteday's data will not be available until the second day using it.
