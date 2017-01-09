@@ -1,7 +1,7 @@
 /**
  *	Enlighten Solar System (Local)
  *
- *	Copyright 2016 Andreas Amann
+ *	Copyright 2016-2017 Andreas Amann
  *
  *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *	in compliance with the License. You may obtain a copy of the License at:
@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.3.0 (20170107)\n© 2016–2017 Andreas Amann"
+	return "1.3.1 (20170108)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -237,22 +237,21 @@ metadata {
 			"device.refresh",
 			inactiveLabel: false,
 			decoration: "flat",
-			width: 2,
-			height: 2) {
+			width: 1,
+			height: 1) {
 				state("default",
 					action:"polling.poll",
-					label: "Refresh",
-					icon:"st.secondary.refresh-icon")
+					icon:"st.secondary.refresh")
 		}
-		standardTile(
-			"blank",
-			"blank",
-			inactiveLabel: false,
+		valueTile(
+			"installationDate",
+			"device.installationDate",
+			width: 5,
+			height: 1,
 			decoration: "flat",
-			width: 4,
-			height: 2) {
-				state("default",
-					label: "")
+			wordWrap: false) {
+				state("installationDate",
+					label: '${currentValue}')
 		}
 		htmlTile(name:"graphHTML",
 			action: "getGraphHTML",
@@ -262,7 +261,7 @@ metadata {
 			whitelist: ["www.gstatic.com"])
 
 		main "power"
-		details(["SolarMulti", "graphHTML", "today", "energy_str", "efficiency", "yesterday", "energy_yesterday", "efficiency_yesterday", "last7days", "energy_last7days", "efficiency_last7days", "lifetime", "energy_life", "efficiency_lifetime", "blank", "refresh"])
+		details(["SolarMulti", "graphHTML", "today", "energy_str", "efficiency", "yesterday", "energy_yesterday", "efficiency_yesterday", "last7days", "energy_last7days", "efficiency_last7days", "lifetime", "energy_life", "efficiency_lifetime", "installationDate", "refresh"])
 	}
 }
 
@@ -385,6 +384,7 @@ def parse(String message) {
 				try {
 					state.installationDate = new Date().parse("E MMM dd, yyyy H:m a z", dateString).getTime()
                 	log.debug "${device.displayName} - system has been live since ${dateString}"
+					sendEvent(name: 'installationDate', value: "System live since " + new Date(state.installationDate).format(), displayed: false)
 				}
 				catch (Exception ex) {
 					log.debug "${device.displayName} - unable to parse installation date '${dateString}'"
