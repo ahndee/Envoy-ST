@@ -311,6 +311,7 @@ def pullData() {
 		def data = resp.data
 		if (data == state.lastData) {
 			log.debug "No new data"
+			sendEvent(name: 'lastUpdate', value: new Date(), displayed: false) // dummy event for health check
 			return null
 		}
 		state.lastData = data
