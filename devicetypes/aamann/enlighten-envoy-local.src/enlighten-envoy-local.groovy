@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.3.1 (20170108)\n© 2016–2017 Andreas Amann"
+	return "1.4 (20170309)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -40,6 +40,7 @@ metadata {
 		capability "Energy Meter"
 		capability "Refresh"
 		capability "Polling"
+		capability "Health Check"
 
 		attribute "energy_str", "string"
 		attribute "energy_yesterday", "string"
@@ -282,7 +283,24 @@ def updated() {
 	state.remove('api')
 	state.remove('installationDate')
 	state.maxPower = settings.confNumInverters * settings.confInverterSize
+	// Notify health check about this device with timeout interval 10 minutes (i.e., 5 failed update requests)
+	sendEvent(name: "checkInterval", value: 10 * 60, data: [protocol: "lan", hubHardwareId: device.hub.hardwareID], displayed: false)
 	pullData()
+	startPoll()
+}
+
+def ping() {
+	log.trace("$device.displayName - checking device health…")
+	pullData()
+}
+
+def startPoll() {
+	unschedule()
+	// Schedule 2 minute polling
+	def sec = Math.round(Math.floor(Math.random() * 60))
+	def cron = "$sec 0/2 * * * ?" // every 2 min
+	log.trace("$device.displayName - startPoll: schedule('$cron', pullData)")
+	schedule(cron, pullData)
 }
 
 private def updateDNI() {
@@ -311,11 +329,11 @@ def pullData() {
 	state.lastRequestType = (state.api == "HTML" || !state.installationDate ? "HTML" : "JSON API")
 	log.debug "${device.displayName} - requesting latest data from Envoy via ${state.lastRequestType}…"
 	updateDNI()
-	return new physicalgraph.device.HubAction([
+	sendHubCommand(new physicalgraph.device.HubAction([
 		method: "GET",
 		path: state.lastRequestType == "HTML" ? "/production?locale=en" : "/api/v1/production",
 		headers: [HOST:getHostAddress()]
-	])
+	]))
 }
 
 String getDataString(Integer seriesIndex) {
@@ -383,11 +401,11 @@ def parse(String message) {
 			msg.body.replaceFirst(/${patternString}/) {all, dateString ->
 				try {
 					state.installationDate = new Date().parse("E MMM dd, yyyy H:m a z", dateString).getTime()
-                	log.debug "${device.displayName} - system has been live since ${dateString}"
-					sendEvent(name: 'installationDate', value: "System live since " + new Date(state.installationDate).format(), displayed: false)
+					log.debug "${device.displayName} - system has been live since ${dateString}"
+					sendEvent(name: 'installationDate', value: "System live since " + new Date(state.installationDate).format("MMM dd, yyyy"), displayed: false)
 				}
 				catch (Exception ex) {
-					log.debug "${device.displayName} - unable to parse installation date '${dateString}'"
+					log.debug "${device.displayName} - unable to parse installation date '${dateString}' ('${ex}')"
 					state.installationDate = -1
 				}
 				return true
@@ -414,6 +432,7 @@ def parse(String message) {
 	def data = state.api == "HTML" ? parseHTMLProductionData(msg.body) : msg.json
 	if (data == state.lastData) {
 		log.debug "${device.displayName} - no new data"
+		sendEvent(name: 'lastUpdate', value: new Date(), displayed: false) // dummy event for health check
 		return null
 	}
 	state.lastData = data
