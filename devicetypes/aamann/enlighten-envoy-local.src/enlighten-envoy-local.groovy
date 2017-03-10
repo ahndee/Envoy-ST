@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.4 (20170309)\n© 2016–2017 Andreas Amann"
+	return "1.4.1 (20170310)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -25,6 +25,8 @@ preferences {
 		defaultValue:"80", required: true, displayDuringSetup: true)
 	input("confNumInverters", "number", title:"Number of Inverters/Panels",
 		required: true, displayDuringSetup: true)
+	input("pollingInterval", "number", title:"Polling Interval (min)",
+		defaultValue:"5", range: "2..59", required: true, displayDuringSetup: true)
 	input(title: "", description: "Inverter Size (W)\n\nRated maximum power in Watts for each inverter\n\nUse '225' for M215 and '250' for M250", type: "paragraph", element: "paragraph", displayDuringSetup: true)
 	input("confInverterSize", "number", title:"",
 		required: true, displayDuringSetup: true)
@@ -36,6 +38,7 @@ preferences {
 
 metadata {
 	definition (name: "Enlighten Envoy (local)", namespace: "aamann", author: "Andreas Amann") {
+		capability "Sensor"
 		capability "Power Meter"
 		capability "Energy Meter"
 		capability "Refresh"
@@ -279,14 +282,21 @@ def refresh() {
 }
 
 def updated() {
-	log.trace("$device.displayName updated with settings: ${settings.inspect()}")
-	state.remove('api')
-	state.remove('installationDate')
-	state.maxPower = settings.confNumInverters * settings.confInverterSize
-	// Notify health check about this device with timeout interval 10 minutes (i.e., 5 failed update requests)
-	sendEvent(name: "checkInterval", value: 10 * 60, data: [protocol: "lan", hubHardwareId: device.hub.hardwareID], displayed: false)
-	pullData()
-	startPoll()
+	if (!state.updatedLastRanAt || now() >= state.updatedLastRanAt + 2000) {
+		state.updatedLastRanAt = now()
+		log.trace("$device.displayName - updated() called with settings: ${settings.inspect()}")
+		state.remove('api')
+		state.remove('installationDate')
+		state.maxPower = settings.confNumInverters * settings.confInverterSize
+		// Notify health check about this device with timeout interval equal to 5 failed update requests
+		def healthCheckInterval = 5 * settings.pollingInterval.toInteger() * 60
+		sendEvent(name: "checkInterval", value: healthCheckInterval, data: [protocol: "lan", hubHardwareId: device.hub.hardwareID], displayed: false)
+		log.trace("$device.displayName - setting checkInterval for device health check to ${healthCheckInterval} seconds")
+		pullData()
+		startPoll()
+	} else {
+		log.trace("$device.displayName - updated() ran within the last 2 seconds - skipping")
+	}
 }
 
 def ping() {
@@ -296,9 +306,10 @@ def ping() {
 
 def startPoll() {
 	unschedule()
-	// Schedule 2 minute polling
+	// Schedule polling based on preference setting
 	def sec = Math.round(Math.floor(Math.random() * 60))
-	def cron = "$sec 0/2 * * * ?" // every 2 min
+	def min = Math.round(Math.floor(Math.random() * settings.pollingInterval.toInteger()))
+	def cron = "${sec} ${min}/${settings.pollingInterval.toInteger()} * * * ?" // every N min
 	log.trace("$device.displayName - startPoll: schedule('$cron', pullData)")
 	schedule(cron, pullData)
 }
