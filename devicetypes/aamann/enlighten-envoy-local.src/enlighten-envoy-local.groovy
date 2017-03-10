@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.4 (20170309)\n© 2016–2017 Andreas Amann"
+	return "1.4 (20170309)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -36,6 +36,7 @@ preferences {
 
 metadata {
 	definition (name: "Enlighten Envoy (local)", namespace: "aamann", author: "Andreas Amann") {
+		capability "Sensor"
 		capability "Power Meter"
 		capability "Energy Meter"
 		capability "Refresh"
@@ -279,14 +280,19 @@ def refresh() {
 }
 
 def updated() {
-	log.trace("$device.displayName updated with settings: ${settings.inspect()}")
-	state.remove('api')
-	state.remove('installationDate')
-	state.maxPower = settings.confNumInverters * settings.confInverterSize
-	// Notify health check about this device with timeout interval 10 minutes (i.e., 5 failed update requests)
-	sendEvent(name: "checkInterval", value: 10 * 60, data: [protocol: "lan", hubHardwareId: device.hub.hardwareID], displayed: false)
-	pullData()
-	startPoll()
+        if (!state.updatedLastRanAt || now() >= state.updatedLastRanAt + 2000) {
+                state.updatedLastRanAt = now()
+		log.trace("$device.displayName updated with settings: ${settings.inspect()}")
+		state.remove('api')
+		state.remove('installationDate')
+		state.maxPower = settings.confNumInverters * settings.confInverterSize
+		// Notify health check about this device with timeout interval 10 minutes (i.e., 5 failed update requests)
+		sendEvent(name: "checkInterval", value: 10 * 60, data: [protocol: "lan", hubHardwareId: device.hub.hardwareID], displayed: false)
+		pullData()
+		startPoll()
+        } else {
+                log.trace "updated(): Ran within last 2 seconds - SKIPPING"
+        }
 }
 
 def ping() {
@@ -296,9 +302,10 @@ def ping() {
 
 def startPoll() {
 	unschedule()
-	// Schedule 2 minute polling
+	def wantMin = 6       // Schedule N minute polling Integer < 60
 	def sec = Math.round(Math.floor(Math.random() * 60))
-	def cron = "$sec 0/2 * * * ?" // every 2 min
+	def min = Math.round(Math.floor(Math.random() * wantMin))
+	def cron = "$sec ${min}/${wantMin} * * * ?" // every N min
 	log.trace("$device.displayName - startPoll: schedule('$cron', pullData)")
 	schedule(cron, pullData)
 }
