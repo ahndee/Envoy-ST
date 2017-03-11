@@ -15,12 +15,14 @@
  */
 
 def version() {
-	return "0.2 (20170309)\n© 2016–2017 Andreas Amann"
+	return "0.2.1 (20170311)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
 	input("confSiteID", "number", title: "Site ID", required: true, displayDuringSetup: true)
 	input("confApiKey", "text", title: "API Key (get this from your Solar PV installer)", required: true, displayDuringSetup: true)
+	input("pollingInterval", "number", title:"Polling Interval (min)",
+		defaultValue:"5", range: "2..59", required: true, displayDuringSetup: true)
 	input(title: "", description: "Total System Size (W)\n\nRated maximum power in Watts for the system", type: "paragraph", element: "paragraph", displayDuringSetup: true)
 	input("confSystemSize", "number", title:"", required: true, displayDuringSetup: true)
 	input(title:"", description: "Version: ${version()}", type: "paragraph", element: "paragraph")
@@ -28,6 +30,7 @@ preferences {
 
 metadata {
 	definition (name: "SolarEdge", namespace: "aamann", author: "Andreas Amann") {
+		capability "Sensor"
 		capability "Power Meter"
 		capability "Energy Meter"
 		capability "Refresh"
@@ -282,12 +285,18 @@ def refresh() {
 }
 
 def updated() {
-	log.trace("$device.displayName updated with settings: ${settings.inspect()}")
-	device.setDeviceNetworkId(settings.confSiteID.toString())
-	// Notify health check about this device with timeout interval 20 minutes (i.e., 4 failed update requests)
-	sendEvent(name: "checkInterval", value: 20 * 60, data: [protocol: "cloud", hubHardwareId: device.hub.hardwareID], displayed: false)
-	pullData()
-	startPoll()
+	if (!state.updatedLastRanAt || now() >= state.updatedLastRanAt + 2000) {
+		state.updatedLastRanAt = now()
+		log.trace("$device.displayName - updated with settings: ${settings.inspect()}")
+		device.setDeviceNetworkId(settings.confSiteID.toString())
+		// Notify health check about this device with timeout interval equal to 5 failed update requests
+		def healthCheckInterval = 5 * settings.pollingInterval.toInteger() * 60
+		sendEvent(name: "checkInterval", value: healthCheckInterval, data: [protocol: "cloud", hubHardwareId: device.hub.hardwareID], displayed: false)
+		pullData()
+		startPoll()
+	} else {
+		log.trace("$device.displayName - updated() ran within the last 2 seconds - skipping")
+	}
 }
 
 def ping() {
@@ -297,9 +306,10 @@ def ping() {
 
 def startPoll() {
 	unschedule()
-	// Schedule 2 minute polling
+	// Schedule polling based on preference setting
 	def sec = Math.round(Math.floor(Math.random() * 60))
-	def cron = "$sec 0/5 * * * ?" // every 5 min
+	def min = Math.round(Math.floor(Math.random() * settings.pollingInterval.toInteger()))
+	def cron = "${sec} ${min}/${settings.pollingInterval.toInteger()} * * * ?" // every N min
 	log.trace("$device.displayName - startPoll: schedule('$cron', pullData)")
 	schedule(cron, pullData)
 }
