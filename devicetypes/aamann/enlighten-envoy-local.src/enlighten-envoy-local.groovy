@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.4.1 (20170310)\n© 2016–2017 Andreas Amann"
+	return "1.4.2 (20170313)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -289,7 +289,8 @@ def updated() {
 		state.remove('installationDate')
 		state.maxPower = settings.confNumInverters * settings.confInverterSize
 		// Notify health check about this device with timeout interval equal to 5 failed update requests
-		def healthCheckInterval = 5 * settings.pollingInterval.toInteger() * 60
+		// (add 30 seconds so we don't collide with the 5th request in case that succeeds)
+		def healthCheckInterval = 5 * settings.pollingInterval.toInteger() * 60 + 30
 		sendEvent(name: "checkInterval", value: healthCheckInterval, data: [protocol: "lan", hubHardwareId: device.hub.hardwareID], displayed: false)
 		log.trace("$device.displayName - setting checkInterval for device health check to ${healthCheckInterval} seconds")
 		pullData()

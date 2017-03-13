@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "0.2.1 (20170311)\n© 2016–2017 Andreas Amann"
+	return "0.2.2 (20170313)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -290,7 +290,8 @@ def updated() {
 		log.trace("$device.displayName - updated with settings: ${settings.inspect()}")
 		device.setDeviceNetworkId(settings.confSiteID.toString())
 		// Notify health check about this device with timeout interval equal to 5 failed update requests
-		def healthCheckInterval = 5 * settings.pollingInterval.toInteger() * 60
+		// (add 30 seconds so we don't collide with the 5th request in case that succeeds)
+		def healthCheckInterval = 5 * settings.pollingInterval.toInteger() * 60 + 30
 		sendEvent(name: "checkInterval", value: healthCheckInterval, data: [protocol: "cloud", hubHardwareId: device.hub.hardwareID], displayed: false)
 		pullData()
 		startPoll()
