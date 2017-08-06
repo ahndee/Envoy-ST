@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.4.2 (20170313)\n© 2016–2017 Andreas Amann"
+	return "1.4.3 (20170805)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -442,7 +442,7 @@ def parse(String message) {
 		return null
 	}
 	def data = state.api == "HTML" ? parseHTMLProductionData(msg.body) : msg.json
-	if (data == state.lastData) {
+	if ((data.wattHoursToday == state.lastData.wattHoursToday) && (data.wattsNow == state.lastData.wattsNow)) {
 		log.debug "${device.displayName} - no new data"
 		sendEvent(name: 'lastUpdate', value: new Date(), displayed: false) // dummy event for health check
 		return null
