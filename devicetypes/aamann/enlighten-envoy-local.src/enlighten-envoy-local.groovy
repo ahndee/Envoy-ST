@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.4.3 (20170805)\n© 2016–2017 Andreas Amann"
+	return "1.4.4 (20170822)\n© 2016–2017 Andreas Amann"
 }
 
 preferences {
@@ -442,7 +442,7 @@ def parse(String message) {
 		return null
 	}
 	def data = state.api == "HTML" ? parseHTMLProductionData(msg.body) : msg.json
-	if ((data.wattHoursToday == state.lastData.wattHoursToday) && (data.wattsNow == state.lastData.wattsNow)) {
+	if (state.lastData && (data.wattHoursToday == state.lastData.wattHoursToday) && (data.wattsNow == state.lastData.wattsNow)) {
 		log.debug "${device.displayName} - no new data"
 		sendEvent(name: 'lastUpdate', value: new Date(), displayed: false) // dummy event for health check
 		return null
@@ -558,10 +558,10 @@ def parse(String message) {
 
 def getStartTime() {
 	def startTime = 24
-	if (state.powerTable.size()) {
+	if (state.powerTable && state.powerTable.size()) {
 		startTime = state.powerTable.min{it[0].toInteger()}[0].toInteger()
 	}
-	if (state.powerTableYesterday.size()) {
+	if (state.powerTableYesterday && state.powerTableYesterday.size()) {
 		startTime = Math.min(startTime, state.powerTableYesterday.min{it[0].toInteger()}[0].toInteger())
 	}
 	return startTime
