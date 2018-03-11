@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.5 (20180310)\n© 2016–2018 Andreas Amann"
+	return "1.5.1 (20180311)\n© 2016–2018 Andreas Amann"
 }
 
 preferences {
@@ -422,32 +422,32 @@ def dataCallback(physicalgraph.device.HubResponse msg) {
 					log.debug "${device.displayName} - unable to parse installation date '${dateString}' ('${ex}')"
 					state.installationDate = -1
 				}
-				return true
+				return
 			}
 		}
 		else {
 			log.debug "${device.displayName} - unable to find installation date on page"
 			state.installationDate = -1
 		}
-		return null
+		return
 	}
 	else if (!state.api && state.lastRequestType != "HTML" && (msg.status != 200 || !msg.json)) {
 		log.debug "${device.displayName} - JSON API not available, falling back to HTML interface"
 		state.api = "HTML"
-		return null
+		return
 	}
 	else if (!msg.body) {
 		log.error "${device.displayName} - no HTTP body found in '${message}'"
-		return null
+		return
 	}
 	if (!state.api && state.lastRequestType == "HTML") {
-		return null
+		return
 	}
 	def data = state.api == "HTML" ? parseHTMLProductionData(msg.body) : msg.json
 	if (state.lastData && (data.wattHoursToday == state.lastData.wattHoursToday) && (data.wattsNow == state.lastData.wattsNow)) {
 		log.debug "${device.displayName} - no new data"
 		sendEvent(name: 'lastUpdate', value: new Date(), displayed: false) // dummy event for health check
-		return null
+		return
 	}
 	state.lastData = data
 	log.debug "${device.displayName} - new data: ${data}"
@@ -476,22 +476,21 @@ def dataCallback(physicalgraph.device.HubResponse msg) {
 		state.peakpower = currentPower
 		state.peakpercentage = (100*state.peakpower/state.maxPower).toFloat()
 	}
-	def events = []
-	events << createEvent(name: 'power_details', value: ("(" + String.format("%+,d", powerChange) + "W) — Today's Peak: " + String.format("%,d", state.peakpower) + "W (" + String.format("%.1f", state.peakpercentage) + "%)"), displayed: false)
-	events << createEvent(name: 'energy_last7days', value: String.format("%,#.3f", energyLast7Days) + "kWh", displayed: false)
-	events << createEvent(name: 'energy_life', value: String.format("%,#.3f", energyLife) + "MWh", displayed: false)
+	sendEvent(name: 'power_details', value: ("(" + String.format("%+,d", powerChange) + "W) — Today's Peak: " + String.format("%,d", state.peakpower) + "W (" + String.format("%.1f", state.peakpercentage) + "%)"), displayed: false)
+	sendEvent(name: 'energy_last7days', value: String.format("%,#.3f", energyLast7Days) + "kWh", displayed: false)
+	sendEvent(name: 'energy_life', value: String.format("%,#.3f", energyLife) + "MWh", displayed: false)
 	if (state.installationDate && state.installationDate > 0) {
 		def systemAgeInDays = (new Date().getTime() - state.installationDate)/(1000*60*60*24)
 		def efficiencyLifetime = (1000000/systemAgeInDays*energyLife/(settings.confNumInverters * settings.confPanelSize)).toFloat()
-		events << createEvent(name: 'efficiency_lifetime', value: String.format("%#.3f", efficiencyLifetime) + "\nkWh/kW", displayed: false)
+		sendEvent(name: 'efficiency_lifetime', value: String.format("%#.3f", efficiencyLifetime) + "\nkWh/kW", displayed: false)
 	}
 	def efficiencyToday = (1000*energyToday/(settings.confNumInverters * settings.confPanelSize)).toFloat()
-	events << createEvent(name: 'efficiency', value: String.format("%#.3f", efficiencyToday) + "\nkWh/kW", displayed: false)
+	sendEvent(name: 'efficiency', value: String.format("%#.3f", efficiencyToday) + "\nkWh/kW", displayed: false)
 	def efficiencyLast7Days = (1000/7*energyLast7Days/(settings.confNumInverters * settings.confPanelSize)).toFloat()
-	events << createEvent(name: 'efficiency_last7days', value: String.format("%#.3f", efficiencyLast7Days) + "\nkWh/kW", displayed: false)
-	events << createEvent(name: 'energy_str', value: String.format("%,#.3f", energyToday) + "kWh", displayed: false)
-	events << createEvent(name: 'energy', value: energyToday, unit: "kWh", descriptionText: "Energy is " + String.format("%,#.3f", energyToday) + "kWh\n(Efficiency: " + String.format("%#.3f", efficiencyToday) + "kWh/kW)")
-	events << createEvent(name: 'power', value: currentPower, unit: "W", descriptionText: "Power is " + String.format("%,d", currentPower) + "W (" + String.format("%#.1f", 100*currentPower/state.maxPower) + "%)\n(" + String.format("%+,d", powerChange) + "W since last reading)")
+	sendEvent(name: 'efficiency_last7days', value: String.format("%#.3f", efficiencyLast7Days) + "\nkWh/kW", displayed: false)
+	sendEvent(name: 'energy_str', value: String.format("%,#.3f", energyToday) + "kWh", displayed: false)
+	sendEvent(name: 'energy', value: energyToday, unit: "kWh", descriptionText: "Energy is " + String.format("%,#.3f", energyToday) + "kWh\n(Efficiency: " + String.format("%#.3f", efficiencyToday) + "kWh/kW)")
+	sendEvent(name: 'power', value: currentPower, unit: "W", descriptionText: "Power is " + String.format("%,d", currentPower) + "W (" + String.format("%#.1f", 100*currentPower/state.maxPower) + "%)\n(" + String.format("%+,d", powerChange) + "W since last reading)")
 	// get power data for yesterday and today so we can create a graph
 	if (state.powerTableYesterday == null || state.energyTableYesterday == null || powerTable == null || energyTable == null) {
 		def startOfToday = timeToday("00:00", location.timeZone)
@@ -555,7 +554,6 @@ def dataCallback(physicalgraph.device.HubResponse msg) {
 	}
 	state.powerTable = powerTable
 	state.energyTable = energyTable
-	return events
 }
 
 def getStartTime() {
