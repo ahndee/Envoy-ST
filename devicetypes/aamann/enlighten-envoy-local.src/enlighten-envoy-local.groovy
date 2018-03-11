@@ -1,7 +1,7 @@
 /**
  *	Enlighten Solar System (Local)
  *
- *	Copyright 2016-2017 Andreas Amann
+ *	Copyright 2016-2018 Andreas Amann
  *
  *	Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *	in compliance with the License. You may obtain a copy of the License at:
@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.4.4 (20170822)\n© 2016–2017 Andreas Amann"
+	return "1.5 (20180310)\n© 2016–2018 Andreas Amann"
 }
 
 preferences {
@@ -342,10 +342,13 @@ def pullData() {
 	log.debug "${device.displayName} - requesting latest data from Envoy via ${state.lastRequestType}…"
 	updateDNI()
 	sendHubCommand(new physicalgraph.device.HubAction([
-		method: "GET",
-		path: state.lastRequestType == "HTML" ? "/production?locale=en" : "/api/v1/production",
-		headers: [HOST:getHostAddress()]
-	]))
+			method: "GET",
+			path: state.lastRequestType == "HTML" ? "/production?locale=en" : "/api/v1/production",
+			headers: [HOST:getHostAddress()]
+		],
+		state.dni,
+		[callback: dataCallback])
+	)
 }
 
 String getDataString(Integer seriesIndex) {
@@ -401,8 +404,7 @@ private Map parseHTMLProductionData(String body) {
 	return data
 }
 
-def parse(String message) {
-	def msg = parseLanMessage(message)
+def dataCallback(physicalgraph.device.HubResponse msg) {
 	if (!state.mac || state.mac != msg.mac) {
 		state.mac = msg.mac
 	}
