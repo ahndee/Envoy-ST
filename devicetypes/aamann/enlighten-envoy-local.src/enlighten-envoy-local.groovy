@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.5.1 (20180311)\n© 2016–2018 Andreas Amann"
+	return "1.5.2 (20180317)\n© 2016–2018 Andreas Amann"
 }
 
 preferences {
@@ -338,17 +338,30 @@ private String getHostAddress() {
 }
 
 def pullData() {
-	state.lastRequestType = (state.api == "HTML" || !state.installationDate ? "HTML" : "JSON API")
-	log.debug "${device.displayName} - requesting latest data from Envoy via ${state.lastRequestType}…"
 	updateDNI()
-	sendHubCommand(new physicalgraph.device.HubAction([
-			method: "GET",
-			path: state.lastRequestType == "HTML" ? "/production?locale=en" : "/api/v1/production",
-			headers: [HOST:getHostAddress()]
-		],
-		state.dni,
-		[callback: dataCallback])
-	)
+	if (!state.installationDate) {
+		log.debug "${device.displayName} - requesting installation date from Envoy…"
+		sendHubCommand(new physicalgraph.device.HubAction([
+				method: "GET",
+				path: "/production?locale=en",
+				headers: [HOST:getHostAddress()]
+			],
+			state.dni,
+			[callback: installationDateCallback])
+		)
+	} else {
+		state.lastRequestType = (state.api == "HTML" ? "HTML" : "JSON API")
+		log.debug "${device.displayName} - requesting latest data from Envoy via ${state.lastRequestType}…"
+		updateDNI()
+		sendHubCommand(new physicalgraph.device.HubAction([
+				method: "GET",
+				path: state.lastRequestType == "HTML" ? "/production?locale=en" : "/api/v1/production",
+				headers: [HOST:getHostAddress()]
+			],
+			state.dni,
+			[callback: dataCallback])
+		)
+	}
 }
 
 String getDataString(Integer seriesIndex) {
@@ -404,7 +417,7 @@ private Map parseHTMLProductionData(String body) {
 	return data
 }
 
-def dataCallback(physicalgraph.device.HubResponse msg) {
+def installationDateCallback(physicalgraph.device.HubResponse msg) {
 	if (!state.mac || state.mac != msg.mac) {
 		state.mac = msg.mac
 	}
@@ -422,16 +435,21 @@ def dataCallback(physicalgraph.device.HubResponse msg) {
 					log.debug "${device.displayName} - unable to parse installation date '${dateString}' ('${ex}')"
 					state.installationDate = -1
 				}
-				return
 			}
 		}
 		else {
 			log.debug "${device.displayName} - unable to find installation date on page"
 			state.installationDate = -1
 		}
-		return
 	}
-	else if (!state.api && state.lastRequestType != "HTML" && (msg.status != 200 || !msg.json)) {
+	pullData()
+}
+
+def dataCallback(physicalgraph.device.HubResponse msg) {
+	if (!state.mac || state.mac != msg.mac) {
+		state.mac = msg.mac
+	}
+	if (!state.api && state.lastRequestType != "HTML" && (msg.status != 200 || !msg.json)) {
 		log.debug "${device.displayName} - JSON API not available, falling back to HTML interface"
 		state.api = "HTML"
 		return
