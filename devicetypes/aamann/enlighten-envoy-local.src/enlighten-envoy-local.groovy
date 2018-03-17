@@ -458,9 +458,6 @@ def dataCallback(physicalgraph.device.HubResponse msg) {
 		log.error "${device.displayName} - no HTTP body found in '${message}'"
 		return
 	}
-	if (!state.api && state.lastRequestType == "HTML") {
-		return
-	}
 	def data = state.api == "HTML" ? parseHTMLProductionData(msg.body) : msg.json
 	if (state.lastData && (data.wattHoursToday == state.lastData.wattHoursToday) && (data.wattsNow == state.lastData.wattsNow)) {
 		log.debug "${device.displayName} - no new data"
