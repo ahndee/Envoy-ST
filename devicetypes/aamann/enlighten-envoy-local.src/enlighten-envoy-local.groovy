@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "1.5.2 (20180317)\n© 2016–2018 Andreas Amann"
+	return "1.5.3 (20181207)\n© 2016–2018 Andreas Amann"
 }
 
 preferences {
@@ -450,7 +450,7 @@ def dataCallback(physicalgraph.device.HubResponse msg) {
 		state.mac = msg.mac
 	}
 	if (!state.api && state.lastRequestType != "HTML" && (msg.status != 200 || !msg.json)) {
-		log.debug "${device.displayName} - JSON API not available, falling back to HTML interface"
+		log.debug "${device.displayName} - JSON API not available, falling back to HTML interface (Envoy responded with status code ${msg.status})"
 		state.api = "HTML"
 		return
 	}
@@ -639,7 +639,8 @@ def getGraphHTML() {
 										format: 'decimal',
 										textStyle: {color: '#FF0000'},
 										titleTextStyle: {color: '#FF0000'},
-										viewWindow: {min: 0}
+										viewWindow: {min: 0},
+                                        gridlines: {count: 0}
 									}
 								},
 								legend: {
