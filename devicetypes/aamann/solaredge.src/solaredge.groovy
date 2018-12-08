@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "0.2.2 (20170313)\n© 2016–2017 Andreas Amann"
+	return "0.2.3 (20181208)\n© 2016–2018 Andreas Amann"
 }
 
 preferences {
@@ -531,7 +531,8 @@ def getGraphHTML() {
 										title: 'Energy (kWh)',
 										format: 'decimal',
 										textStyle: {color: '#FF0000'},
-										titleTextStyle: {color: '#FF0000'}
+										titleTextStyle: {color: '#FF0000'},
+										gridlines: {count: 0}
 									}
 								},
 								legend: {
