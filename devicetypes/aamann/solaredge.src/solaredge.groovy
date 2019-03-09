@@ -15,7 +15,7 @@
  */
 
 def version() {
-	return "0.2.3 (20181208)\n© 2016–2018 Andreas Amann"
+	return "0.2.4 (20190308)\n© 2016–2019 Andreas Amann"
 }
 
 preferences {
@@ -346,7 +346,7 @@ def pullData() {
 			sendEvent(name: 'energy_yesterday', value: device.currentState("energy_str")?.value, displayed: false)
 			sendEvent(name: 'efficiency_yesterday', value: device.currentState("efficiency")?.value, displayed: false)
 		}
-		def previousPower = state.lastPower != null ? state.lastPower : currentPower
+		def previousPower = state.lastPower ?: currentPower
 		def powerChange = currentPower - previousPower
 		state.lastPower = currentPower
 		if (state.peakpower <= currentPower) {
@@ -372,8 +372,9 @@ def pullData() {
 		if (state.powerTableYesterday == null || state.energyTableYesterday == null || powerTable == null || energyTable == null) {
 			def startOfToday = timeToday("00:00", location.timeZone)
 			def newValues
-			if (state.powerTableYesterday == null || state.energyTableYesterday == null) {
+			if (!state.historyYesterday && (state.powerTableYesterday == null || state.energyTableYesterday == null)) {
 				log.trace "Querying DB for yesterday's data…"
+				state.historyYesterday = true
 				def dataTable = []
 				def powerData = device.statesBetween("power", startOfToday - 1, startOfToday, [max: 288]) // 24h in 5min intervals should be more than sufficient…
 				if (powerData.size()) {
@@ -398,9 +399,13 @@ def pullData() {
 					}
 				}
 				state.energyTableYesterday = dataTable
+			} else if (state.historyYesterday && (state.powerTableYesterday == null || state.energyTableYesterday == null)) {
+				state.powerTableYesterday = []
+				state.energyTableYesterday = []
 			}
-			if (powerTable == null || energyTable == null) {
+			if (!state.historyToday && (powerTable == null || energyTable == null)) {
 				log.trace "Querying DB for today's data…"
+				state.historyToday = true
 				powerTable = []
 				def powerData = device.statesSince("power", startOfToday, [max: 288])
 				if (powerData.size()) {
@@ -421,6 +426,9 @@ def pullData() {
 							energyTable.add([it.date.format("H", location.timeZone),it.date.format("m", location.timeZone),it.floatValue])
 					}
 				}
+			} else if (state.historyToday && (powerTable == null || energyTable == null)) {
+				energyTable = []
+				powerTable = []
 			}
 		}
 		// add latest power & energy readings for the graph
